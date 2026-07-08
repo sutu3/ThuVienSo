@@ -13,5 +13,5 @@ public interface AccountService {
     AccountEntity getAccountById(String idAccount);
     AccountResponse getAccounResponsetById(String idAccount);
     List<AccountResponse> getAllAccount();
-
+    void lockAccount(String id);
 }

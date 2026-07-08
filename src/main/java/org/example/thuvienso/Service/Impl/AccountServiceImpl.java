@@ -55,6 +55,15 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountResponse> getAllAccount() {
         return accountRepo.findAll().stream()
+                .filter(accountEntity -> !accountEntity.getIsDeleted())
                 .map(accountMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public void lockAccount(String id) {
+        AccountEntity account=getAccountById(id);
+        account.setIsDeleted(false);
+        account.setDeletedAt(LocalDateTime.now());
+        accountRepo.save(account);
     }
 }

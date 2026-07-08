@@ -18,6 +18,10 @@ import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.DocumentService;
 import org.example.thuvienso.Service.FolderService;
+import org.example.thuvienso.Service.Impl.Specification.DocumentSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -61,7 +65,9 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public List<DocumentResponseNoList> getListByIdFolder(String idFolder) {
         return documentRepo.findByFolderEntity_IdFolder(idFolder)
-                .stream().map(documentMapper::toResponseNoList)
+                .stream()
+                .filter(document -> !document.getIsDeleted())
+                .map(documentMapper::toResponseNoList)
                 .collect(Collectors.toList());
     }
 
@@ -69,7 +75,45 @@ public class DocumentServiceImpl implements DocumentService {
     public DocumentResponse update(String idDocument, DocumentForm update) {
         DocumentEntity document=getById(idDocument);
         documentMapper.update(document,update);
-
+        document.setUpdatedAt(LocalDateTime.now());
         return documentMapper.toResponse(documentRepo.save(document));
+    }
+
+    @Override
+    public void deletedById(String id) {
+        DocumentEntity document=getById(id);
+        document.setIsDeleted(true);
+        document.setDeletedAt(LocalDateTime.now());
+        documentRepo.save(document);
+    }
+
+    @Override
+    public List<DocumentResponse> getAllDocumentDeleted() {
+        return documentRepo.findAllByIsDeleted(true).stream()
+                .map(documentMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public DocumentResponse restoreDocument(String id) {
+        DocumentEntity document=getById(id);
+        document.setIsDeleted(false);
+        documentRepo.save(document);
+        return documentMapper.toResponse(document);
+    }
+
+    @Override
+    public Page<DocumentResponse> getAllByPage(Pageable pageable) {
+        return documentRepo.findAllByIsDeleted(false, pageable)
+                .map(documentMapper::toResponse);
+    }
+
+    @Override
+    public List<DocumentResponse> searchByTitleContainingIgnoreCase(String keyword) {
+        Specification<DocumentEntity> documentEntitySpecification=Specification.where(DocumentSpecification.hasTitle(keyword));
+        return documentRepo.findAll(documentEntitySpecification)
+                .stream().filter(document -> !document.getIsDeleted())
+                .map(documentMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }

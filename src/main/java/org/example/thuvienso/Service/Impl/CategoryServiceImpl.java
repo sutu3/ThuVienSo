@@ -8,6 +8,7 @@ import org.example.thuvienso.Dto.Request.CategoryRequest;
 import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Form.CategoryForm;
 import org.example.thuvienso.Mapper.CategoryMapper;
 import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Repo.CategoryRepo;
@@ -54,7 +55,25 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponse> getAll() {
         return categoryRepo.findAll().stream()
+                .filter(categoryEntity -> !categoryEntity.getIsDeleted())
                 .map(categoryMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void DeletedById(String id) {
+        CategoryEntity category=getById(id);
+        category.setIsDeleted(true);
+        category.setDeletedAt(LocalDateTime.now());
+        categoryRepo.save(category);
+    }
+
+    @Override
+    public CategoryResponse updateCategory(CategoryForm categoryForm, String id) {
+        CategoryEntity categoryEntity=getById(id);
+        categoryMapper.update(categoryEntity,categoryForm);
+        categoryEntity.setUpdatedAt(LocalDateTime.now());
+        categoryRepo.save(categoryEntity);
+        return categoryMapper.toResponse(categoryEntity);
     }
 }

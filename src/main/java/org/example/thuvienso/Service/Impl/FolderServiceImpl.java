@@ -10,6 +10,7 @@ import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponseNoList;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Form.FolderForm;
 import org.example.thuvienso.Mapper.FolderMapper;
 import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Repo.FolderRepo;
@@ -46,7 +47,7 @@ public class FolderServiceImpl implements FolderService {
         FolderEntity folder=getById(idFolder);
 
         return folder.getChildFolder().stream()
-
+                .filter(child -> !child.getIsDeleted())
                 .map(folderMapper::toChildResponse).collect(Collectors.toList());
     }
 
@@ -62,5 +63,36 @@ public class FolderServiceImpl implements FolderService {
     public FolderEntity getById(String id) {
         return folderRepo.findById(id).orElseThrow(()->
                 new AppException(ErrorCode.FOLDER_NOT_FOUND));
+    }
+
+    @Override
+    public void deletedById(String id) {
+        FolderEntity folder=getById(id);
+        folder.setIsDeleted(true);
+        folder.setDeletedAt(LocalDateTime.now());
+        folderRepo.save(folder);
+    }
+
+    @Override
+    public List<FolderResponseNoList> getAllFolderDeleted() {
+        return folderRepo.findALlByIsDeleted(true)
+                .stream().map(folderMapper::toResponseNoList)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public FolderResponse restoreFolder(String id) {
+        FolderEntity folder=getById(id);
+        folder.setIsDeleted(false);
+        folderRepo.save(folder);
+        return folderMapper.toResponse(folder);
+    }
+
+    @Override
+    public FolderResponse updateFolder(FolderForm update, String idFolder) {
+        FolderEntity folder=getById(idFolder);
+        folderMapper.update(folder,update);
+        folder.setUpdatedAt(LocalDateTime.now());
+        return folderMapper.toResponse(folderRepo.save(folder));
     }
 }

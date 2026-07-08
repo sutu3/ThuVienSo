@@ -34,7 +34,7 @@ public class AuthenticationFilter {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/users",
-            "/api/auth/login",
+            "/auth/login",
             "/inventory",
             "/inventory/sale",
             "/api/test/notify",

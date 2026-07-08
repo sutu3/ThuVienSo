@@ -10,6 +10,7 @@ import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponseNoList;
+import org.example.thuvienso.Form.FolderForm;
 import org.example.thuvienso.Service.FolderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +49,57 @@ public class FolderController {
                 .message("Lấy danh sách thư mục con thành công")
                 .success(true)
                 .Result(folderService.getAllChildFolder(id))
+                .build();
+    }
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deletedById(
+            @PathVariable("id") String id
+    ) {
+
+        folderService.deletedById(id);
+
+        return ApiResponse.<Void>builder()
+                .code(0)
+                .message("Xóa thư mục thành công")
+                .success(true)
+                .build();
+    }
+
+    @GetMapping("/deleted")
+    public ApiResponse<List<FolderResponseNoList>> getAllFolderDeleted() {
+
+        return ApiResponse.<List<FolderResponseNoList>>builder()
+                .code(0)
+                .message("Lấy danh sách thư mục đã xóa thành công")
+                .success(true)
+                .Result(folderService.getAllFolderDeleted())
+                .build();
+    }
+
+    @PutMapping("/restore/{id}")
+    public ApiResponse<FolderResponse> restoreFolder(
+            @PathVariable("id") String id
+    ) {
+
+        return ApiResponse.<FolderResponse>builder()
+                .code(0)
+                .message("Khôi phục thư mục thành công")
+                .success(true)
+                .Result(folderService.restoreFolder(id))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<FolderResponse> updateFolder(
+            @RequestBody FolderForm update,
+            @PathVariable("id") String idFolder
+    ) {
+
+        return ApiResponse.<FolderResponse>builder()
+                .code(0)
+                .message("Cập nhật thư mục thành công")
+                .success(true)
+                .Result(folderService.updateFolder(update, idFolder))
                 .build();
     }
 }

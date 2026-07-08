@@ -21,6 +21,6 @@ public interface FileService {
     ResponseEntity<InputStreamResource> dowloadFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
     FileEntity getByFileName(String fileName);
     List<FileResponse> getByIdDocument(String idDocument);
-    void deleteFile(String id);
+    void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
 
 }

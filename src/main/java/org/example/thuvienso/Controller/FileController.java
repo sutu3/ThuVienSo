@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
+import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Service.FileService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/files")
@@ -73,5 +75,39 @@ public class FileController {
         return fileService.dowloadFile(id);
     }
 
+    @GetMapping("/document/{idDocument}")
+    public ApiResponse<List<FileResponse>> getByIdDocument(
+            @PathVariable("idDocument") String idDocument
+    ) {
+
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0)
+                .message("Lấy danh sách file theo tài liệu thành công")
+                .success(true)
+                .Result(fileService.getByIdDocument(idDocument))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteFile(
+            @PathVariable("id") String id
+    ) throws ServerException,
+            InsufficientDataException,
+            ErrorResponseException,
+            IOException,
+            NoSuchAlgorithmException,
+            InvalidKeyException,
+            InvalidResponseException,
+            XmlParserException,
+            InternalException {
+
+        fileService.deleteFile(id);
+
+        return ApiResponse.<Void>builder()
+                .code(0)
+                .message("Xóa file thành công")
+                .success(true)
+                .build();
+    }
 
 }

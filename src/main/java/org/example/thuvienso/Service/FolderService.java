@@ -4,6 +4,7 @@ import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponseNoList;
+import org.example.thuvienso.Form.FolderForm;
 import org.example.thuvienso.Module.FolderEntity;
 import org.springframework.stereotype.Service;
 
@@ -15,5 +16,8 @@ public interface FolderService {
     List<ChildFolderResponse> getAllTree(String idFolder);
     List<FolderResponseNoList> getAllChildFolder(String idFolder);
     FolderEntity getById(String id);
-
+    void deletedById(String id);
+    List<FolderResponseNoList> getAllFolderDeleted();
+    FolderResponse restoreFolder(String id);
+    FolderResponse updateFolder(FolderForm update,String idFolder);
 }

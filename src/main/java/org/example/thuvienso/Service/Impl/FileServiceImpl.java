@@ -2,6 +2,7 @@ package org.example.thuvienso.Service.Impl;
 
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.errors.*;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -131,7 +132,7 @@ public class FileServiceImpl implements FileService {
                 .toList();
     }
     @Override
-    public void deleteFile(String id) {
+    public void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
         FileEntity fileEntity = fileRepo.findById(id)
                 .orElseThrow(() ->

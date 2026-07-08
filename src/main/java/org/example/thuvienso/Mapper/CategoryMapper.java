@@ -2,9 +2,13 @@ package org.example.thuvienso.Mapper;
 
 import org.example.thuvienso.Dto.Request.CategoryRequest;
 import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
+import org.example.thuvienso.Form.CategoryForm;
+import org.example.thuvienso.Form.DocumentForm;
 import org.example.thuvienso.Module.CategoryEntity;
+import org.example.thuvienso.Module.DocumentEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
@@ -17,4 +21,5 @@ public interface CategoryMapper {
 
     //    @Mapping(target = "Category",ignore = true)
     CategoryResponse toResponse(CategoryEntity Entity);
+    void update(@MappingTarget CategoryEntity category, CategoryForm update);
 }
