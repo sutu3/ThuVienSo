@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Request.DocumentRequest;
+import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
 import org.example.thuvienso.Exception.AppException;
@@ -20,6 +21,7 @@ import org.example.thuvienso.Service.DocumentService;
 import org.example.thuvienso.Service.FolderService;
 import org.example.thuvienso.Service.Impl.Specification.DocumentSpecification;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -52,7 +54,10 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentResponse getByIdResponse(String id) {
-        return documentMapper.toResponse(getById(id));
+        DocumentEntity document = getById(id);
+        document.setViewCount((document.getViewCount() == null ? 0 : document.getViewCount()) + 1);
+        documentRepo.save(document);
+        return documentMapper.toResponse(document);
     }
 
     @Override
@@ -115,5 +120,42 @@ public class DocumentServiceImpl implements DocumentService {
                 .stream().filter(document -> !document.getIsDeleted())
                 .map(documentMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<DocumentResponse> searchAdvanced(DocumentSearchRequest req, Pageable pageable) {
+        Specification<DocumentEntity> spec = Specification.allOf(
+                DocumentSpecification.notDeleted(),
+                DocumentSpecification.keyword(req.getKeyword()),
+                DocumentSpecification.hasType(req.getTypeDocument()),
+                DocumentSpecification.hasStatus(req.getStatus()),
+                DocumentSpecification.hasCategory(req.getCategoryId()),
+                DocumentSpecification.createdAfter(req.getFromDate()),
+                DocumentSpecification.createdBefore(req.getToDate())
+        );
+        return documentRepo.findAll(spec, pageable).map(documentMapper::toResponse);
+    }
+
+    // impl
+    @Override
+    public List<DocumentResponse> getNewest(int limit) {
+        return documentRepo.findByIsDeletedFalseOrderByCreatedAtDesc(PageRequest.of(0, limit))
+                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DocumentResponse> getMostViewed(int limit) {
+        return documentRepo.findByIsDeletedFalseOrderByViewCountDesc(PageRequest.of(0, limit))
+                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DocumentResponse> getRelated(String idDocument, int limit) {
+        DocumentEntity doc = getById(idDocument);
+        String idCategory = doc.getCategoryEntity().getIdCategory();
+        return documentRepo
+                .findByCategoryEntity_IdCategoryAndIdDocumentNotAndIsDeletedFalse(
+                        idCategory, idDocument, PageRequest.of(0, limit))
+                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
     }
 }

@@ -1,20 +1,21 @@
 package org.example.thuvienso.Service.Impl;
 
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.RemoveObjectArgs;
+import io.minio.*;
 import io.minio.errors.*;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Dto.Response.FileUploadResponse;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Helper.GetUrl;
+import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Module.FileEntity;
@@ -24,7 +25,10 @@ import org.example.thuvienso.Service.DocumentService;
 import org.example.thuvienso.Service.FileService;
 import org.example.thuvienso.Service.MinioService;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,13 +52,14 @@ public class FileServiceImpl implements FileService {
     MinioService minioService;
     FileMapper fileMapper;
     MinioClient minioClient;
+    ThumbnailGenerator thumbnailGenerator;
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file,String idDocument) throws Exception {
 
         if(file.getSize() > 50) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
         FileUploadResponse fileUploadResponse = minioService.upload(file);
-
+        String thumbObject = thumbnailGenerator.generate(file);
         FileEntity fileEntity = FileEntity.builder()
                 .partFile(fileUploadResponse.getObjectName())
                 .fileName(fileUploadResponse.getOriginalFileName())
@@ -63,6 +68,7 @@ public class FileServiceImpl implements FileService {
                                 fileUploadResponse.getContentType()
                         )
                 )
+                .thumbnail(thumbObject)
                 .createdAt(LocalDateTime.now())
                 .isDeleted(false)
                 .build();
@@ -124,6 +130,8 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(()->new AppException(ErrorCode.FILE_NOT_FOUND));
     }
 
+
+
     @Override
     public List<FileResponse> getByIdDocument(String idDocument) {
         return fileRepo.findByDocumentEntity_IdDocument(idDocument)
@@ -131,6 +139,53 @@ public class FileServiceImpl implements FileService {
                 .map(fileMapper::toResponse)
                 .toList();
     }
+
+    // src/main/java/org/example/thuvienso/Service/Impl/FileServiceImpl.java
+    @Override
+    public ResponseEntity<InputStreamResource> streamFile(String id, String rangeHeader) throws Exception {
+        FileEntity fileEntity = fileRepo.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+
+        // Lấy kích thước object từ MinIO
+        StatObjectResponse stat = minioClient.statObject(
+                StatObjectArgs.builder()
+                        .bucket("thuvienso")
+                        .object(fileEntity.getPartFile())
+                        .build()
+        );
+        long fileSize = stat.size();
+        String contentType = stat.contentType(); // dùng contentType thật, không dùng enum
+
+        long start = 0;
+        long end = fileSize - 1;
+
+        // Parse header dạng "bytes=START-END"
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String[] ranges = rangeHeader.substring(6).split("-");
+            start = Long.parseLong(ranges[0]);
+            if (ranges.length > 1 && !ranges[1].isEmpty()) {
+                end = Long.parseLong(ranges[1]);
+            }
+        }
+        long length = end - start + 1;
+
+        InputStream stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket("thuvienso")
+                        .object(fileEntity.getPartFile())
+                        .offset(start)
+                        .length(length)
+                        .build()
+        );
+
+        return ResponseEntity.status(rangeHeader == null ? HttpStatus.OK : HttpStatus.PARTIAL_CONTENT)
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize)
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(length))
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(new InputStreamResource(stream));
+    }
+
     @Override
     public void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 

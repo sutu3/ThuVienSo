@@ -42,6 +42,13 @@ public class FileController {
                 .Result(fileService.uploadFile(file,idDocument))
                 .build();
     }
+    @GetMapping("/stream/{id}")
+    public ResponseEntity<InputStreamResource> streamFile(
+            @PathVariable String id,
+            @RequestHeader(value = "Range", required = false) String rangeHeader
+    ) throws Exception {
+        return fileService.streamFile(id, rangeHeader);
+    }
 
     @GetMapping("/view/{id}")
     public ResponseEntity<InputStreamResource> viewFile(

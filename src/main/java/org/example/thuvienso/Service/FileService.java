@@ -1,10 +1,14 @@
 package org.example.thuvienso.Service;
 
 import io.minio.errors.*;
+import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
 import org.example.thuvienso.Dto.Request.FileRequest;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Module.FileEntity;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +25,7 @@ public interface FileService {
     ResponseEntity<InputStreamResource> dowloadFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
     FileEntity getByFileName(String fileName);
     List<FileResponse> getByIdDocument(String idDocument);
+    ResponseEntity<InputStreamResource> streamFile(String id, String rangeHeader) throws Exception;
     void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
 
 }

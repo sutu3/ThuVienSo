@@ -7,16 +7,21 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Request.DocumentRequest;
+import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
+import org.example.thuvienso.Enum.StatusDocument;
+import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Form.DocumentForm;
 import org.example.thuvienso.Service.DocumentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -79,6 +84,7 @@ public class DocumentController {
                 .Result(documentService.update(id, update))
                 .build();
     }
+
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletedById(
             @PathVariable("id") String id
@@ -153,5 +159,50 @@ public class DocumentController {
                                 .searchByTitleContainingIgnoreCase(keyword)
                 )
                 .build();
+    }
+
+    @GetMapping("/search/advanced")
+    public ApiResponse<Page<DocumentResponse>> searchAdvanced(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) TypeDocument typeDocument,
+            @RequestParam(required = false) StatusDocument status,
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        DocumentSearchRequest req = DocumentSearchRequest.builder()
+                .keyword(keyword).typeDocument(typeDocument).status(status)
+                .categoryId(categoryId).fromDate(fromDate).toDate(toDate).build();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ApiResponse.<Page<DocumentResponse>>builder()
+                .code(0).success(true).message("Tìm kiếm nâng cao thành công")
+                .Result(documentService.searchAdvanced(req, pageable))
+                .build();
+    }
+
+    @GetMapping("/newest")
+    public ApiResponse<List<DocumentResponse>> newest(@RequestParam(defaultValue = "10") int limit) {
+        return ApiResponse.<List<DocumentResponse>>builder()
+                .code(0).success(true).message("Tài liệu mới nhất")
+                .Result(documentService.getNewest(limit)).build();
+    }
+
+    @GetMapping("/most-viewed")
+    public ApiResponse<List<DocumentResponse>> mostViewed(@RequestParam(defaultValue = "10") int limit) {
+        return ApiResponse.<List<DocumentResponse>>builder()
+                .code(0).success(true).message("Tài liệu xem nhiều nhất")
+                .Result(documentService.getMostViewed(limit)).build();
+    }
+
+    @GetMapping("/{id}/related")
+    public ApiResponse<List<DocumentResponse>> related(
+            @PathVariable("id") String id,
+            @RequestParam(defaultValue = "6") int limit) {
+        return ApiResponse.<List<DocumentResponse>>builder()
+                .code(0).success(true).message("Tài liệu liên quan")
+                .Result(documentService.getRelated(id, limit)).build();
     }
 }

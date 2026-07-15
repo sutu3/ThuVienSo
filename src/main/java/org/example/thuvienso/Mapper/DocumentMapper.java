@@ -17,6 +17,8 @@ public interface DocumentMapper {
     @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "categoryEntity",ignore = true)
     @Mapping(target = "folderEntity",ignore = true)
+    @Mapping(target = "viewCount", ignore = true)
+    @Mapping(target = "downloadCount", ignore = true)
     DocumentEntity toEntity(DocumentRequest request);
 
     //    @Mapping(target = "Document",ignore = true)

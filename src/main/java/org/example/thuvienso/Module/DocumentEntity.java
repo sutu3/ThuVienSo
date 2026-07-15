@@ -39,6 +39,12 @@ public class DocumentEntity extends BaseEntity{
     @NotNull(message = "Loại tài liệu không được null")
     TypeDocument typeDocument;
 
+    @Column(name = "viewCount", columnDefinition = "BIGINT DEFAULT 0 COMMENT 'lượt xem'")
+    Long viewCount = 0L;
+    @Column(name = "downloadCount", columnDefinition = "BIGINT DEFAULT 0 COMMENT 'lượt  tải'")
+    Long downloadCount = 0L;
+
+
     @Column(name = "thumbnail",columnDefinition = "VARCHAR(256) COMMENT 'tiêu đề thu nhỏ'")
     String thumbnail;
     @ManyToOne
