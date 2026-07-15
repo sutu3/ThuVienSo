@@ -33,11 +33,7 @@ public class AuthenticationFilter {
     CustumJwtDecoder customJwtDecoder;
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/users",
             "/auth/login",
-            "/inventory",
-            "/inventory/sale",
-            "/api/test/notify",
             "/ws",
             // SWAGGER
             "/v3/api-docs/**",

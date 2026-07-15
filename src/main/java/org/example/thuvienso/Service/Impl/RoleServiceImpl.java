@@ -29,11 +29,12 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleResponse createRole(RoleRequest request) {
         RoleEntity role=roleMapper.toEntity(request);
-        if(roleRepo.findByRoleName(request.getRoleName())==null){
+        if(roleRepo.findByRoleName(request.getRoleName()).isPresent()){
             throw new AppException(ErrorCode.ROLE_NOT_FOUND);
         }
         role.setCreatedAt(LocalDateTime.now());
         role.setIsDeleted(false);
+        roleRepo.save(role);
         return roleMapper.toResponse(role);
     }
 

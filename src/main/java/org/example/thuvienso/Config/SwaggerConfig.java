@@ -16,7 +16,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Warehouse System API")
+                        .title("Thư viện số")
                         .version("v3")
                         .description("API documentation with authentication"))
                 .components(new Components()

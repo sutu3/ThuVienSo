@@ -85,7 +85,7 @@ public class FileServiceImpl implements FileService {
         return ResponseEntity.ok()
                 .contentType(
                         MediaType.parseMediaType(
-                                String.valueOf(fileEntity.getTypeFile())
+                                fileEntity.getTypeFile().getMimeType()
                         )
                 )
                 .body(
@@ -106,7 +106,7 @@ public class FileServiceImpl implements FileService {
         return ResponseEntity.ok()
                 .contentType(
                         MediaType.parseMediaType(
-                                String.valueOf(fileEntity.getTypeFile())
+                                fileEntity.getTypeFile().getMimeType()
                         )
                 )
                 .header(

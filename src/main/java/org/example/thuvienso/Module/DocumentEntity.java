@@ -23,7 +23,7 @@ public class DocumentEntity extends BaseEntity{
     @Column(name = "idDocument",columnDefinition = "VARCHAR(36) COMMENT 'Id của tài liệu'")
     String idDocument;
 
-    @Column(name = "content",columnDefinition = "VARCHAR(256) COMMENT 'nội dung tài liệu'")
+    @Column(name = "content",columnDefinition = "TEXT COMMENT 'nội dung tài liệu'")
     String content;
 
     @Column(name = "title",columnDefinition = "VARCHAR(256) COMMENT 'tiêu đề tài liệu'")

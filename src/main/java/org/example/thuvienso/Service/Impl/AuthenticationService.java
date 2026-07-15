@@ -43,7 +43,7 @@ public class AuthenticationService {
     InvalidateTokenRepo invalidateTokenRepo;
 
     @NonFinal
-    @Value("aGUDzL2OOlvQcHJE5fpfzxv0w6MUZtFhF4IRZo+Tc/z5FnKjn8xxJvoot4OVj6LP")
+    @Value("${jwt.signerKey}")
     protected String SIGN_KEY;
 
     @NonFinal
