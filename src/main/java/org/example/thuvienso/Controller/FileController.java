@@ -28,7 +28,7 @@ public class FileController {
     FileService fileService;
 
     @PostMapping(
-            value = "/upload",
+            value = "/upload/{idDocument}",
             consumes = "multipart/form-data"
     )
     public ApiResponse<FileResponse> uploadFile(
@@ -48,6 +48,12 @@ public class FileController {
             @RequestHeader(value = "Range", required = false) String rangeHeader
     ) throws Exception {
         return fileService.streamFile(id, rangeHeader);
+    }
+    @GetMapping("/thumbnail")
+    public ResponseEntity<InputStreamResource> viewThumbnail(
+            @RequestParam("object") String objectName
+    ) throws Exception {
+        return fileService.viewThumbnail(objectName);
     }
 
     @GetMapping("/view/{id}")

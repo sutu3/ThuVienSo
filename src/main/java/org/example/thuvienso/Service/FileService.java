@@ -27,5 +27,5 @@ public interface FileService {
     List<FileResponse> getByIdDocument(String idDocument);
     ResponseEntity<InputStreamResource> streamFile(String id, String rangeHeader) throws Exception;
     void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
-
+    ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception;
 }

@@ -56,8 +56,9 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file,String idDocument) throws Exception {
+        log.warn("Size:"+String.valueOf(file.getSize()));
 
-        if(file.getSize() > 50) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
+        if(file.getSize() > 42000) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
         FileUploadResponse fileUploadResponse = minioService.upload(file);
         String thumbObject = thumbnailGenerator.generate(file);
         FileEntity fileEntity = FileEntity.builder()
@@ -73,6 +74,7 @@ public class FileServiceImpl implements FileService {
                 .isDeleted(false)
                 .build();
         DocumentEntity document=documentService.getById(idDocument);
+        document.setThumbnail(thumbObject);
         fileEntity.setDocumentEntity(document);
 
         return fileMapper.toResponse(fileRepo.save(fileEntity));
@@ -207,5 +209,23 @@ public class FileServiceImpl implements FileService {
         // hoặc soft delete
 //    fileEntity.setIsDeleted(true);
 //    fileRepo.save(fileEntity);
+    }
+    @Override
+    public ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception {
+        if (objectName == null || objectName.isBlank()) {
+            throw new AppException(ErrorCode.FILE_NOT_FOUND);
+        }
+
+        InputStream stream =
+                minioClient.getObject(
+                        GetObjectArgs.builder()
+                                .bucket("thuvienso")
+                                .object(objectName)
+                                .build()
+                );
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(new InputStreamResource(stream));
     }
 }

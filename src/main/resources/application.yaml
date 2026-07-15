@@ -37,7 +37,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 mini:
-  url: http://192.168.2.77:9000
+  url: http://192.168.2.46:9000
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: thuvienso

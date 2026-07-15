@@ -36,7 +36,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
         categoryEntity.setIsDeleted(false);
         categoryEntity.setCreatedAt(LocalDateTime.now());
-        return categoryMapper.toResponse(categoryRepo.save(categoryEntity));
+        categoryRepo.save(categoryEntity);
+        return categoryMapper.toResponse(categoryEntity);
     }
 
     @Override

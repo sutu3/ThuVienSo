@@ -43,9 +43,10 @@ public class DocumentServiceImpl implements DocumentService {
     public DocumentResponse create(DocumentRequest request) {
         DocumentEntity document=documentMapper.toEntity(request);
         CategoryEntity category=categoryService.getById(request.getCategoryEntity());
-        FolderEntity folder=folderService.getById(request.getFolderEntity());
         document.setCategoryEntity(category);
-        document.setFolderEntity(folder);
+        if (request.getFolderEntity() != null && !request.getFolderEntity().isBlank()) {
+            document.setFolderEntity(folderService.getById(request.getFolderEntity()));
+        }
         document.setCreatedAt(LocalDateTime.now());
         document.setIsDeleted(false);
         documentRepo.save(document);
