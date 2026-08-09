@@ -35,6 +35,7 @@ public class AuthenticationFilter {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
             "/ws",
+            "/file/thumbnail",
             // SWAGGER
             "/v3/api-docs/**",
             "/swagger-ui/**",

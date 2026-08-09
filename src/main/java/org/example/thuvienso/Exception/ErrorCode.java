@@ -36,6 +36,13 @@ public enum ErrorCode {
     FILE_NOT_SUPPORTED(4004, "Tập tin không được hỗ trợ", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
     COLLECTION_NOT_FOUND(4005, "Không tìm thấy bộ sưu tập", HttpStatus.NOT_FOUND),
     COLLECTION_IS_EXIST(4006, "Bộ sưu tập đã tồn tại", HttpStatus.CONFLICT),
+
+    // ===== Book / Borrow (5xxx) =====
+    BOOK_NOT_FOUND(5001, "Không tìm thấy sách", HttpStatus.NOT_FOUND),
+    BOOK_IS_EXIST(4002, "Sách đã tồn tại", HttpStatus.CONFLICT),
+    BOOK_OUT_OF_STOCK(5003, "Sách đã hết bản để mượn", HttpStatus.CONFLICT),
+    BORROW_NOT_FOUND(5004, "Không tìm thấy phiếu mượn", HttpStatus.NOT_FOUND),
+    BORROW_INVALID_STATUS(5005, "Trạng thái phiếu mượn không hợp lệ cho thao tác này", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode status) {

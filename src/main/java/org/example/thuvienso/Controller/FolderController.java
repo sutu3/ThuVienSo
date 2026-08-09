@@ -23,6 +23,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FolderController {
     FolderService folderService;
+
     @PostMapping
     public ApiResponse<FolderResponse> createFolder(@RequestBody @Valid FolderRequest request) {
         return ApiResponse.<FolderResponse>builder()
@@ -42,8 +43,9 @@ public class FolderController {
                 .Result(folderService.getAllTree(id))
                 .build();
     }
+
     @GetMapping("/getChildFolder/{id}")
-    public ApiResponse<List<FolderResponseNoList>> getAllFolder(@PathVariable("id") String id){
+    public ApiResponse<List<FolderResponseNoList>> getAllFolder(@PathVariable("id") String id) {
         return ApiResponse.<List<FolderResponseNoList>>builder()
                 .code(0)
                 .message("Lấy danh sách thư mục con thành công")
@@ -51,6 +53,7 @@ public class FolderController {
                 .Result(folderService.getAllChildFolder(id))
                 .build();
     }
+
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletedById(
             @PathVariable("id") String id

@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
-import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Service.FileService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -39,9 +38,10 @@ public class FileController {
         return ApiResponse.<FileResponse>builder()
                 .success(true)
                 .message("Upload file thành công")
-                .Result(fileService.uploadFile(file,idDocument))
+                .Result(fileService.uploadFile(file, idDocument))
                 .build();
     }
+
     @GetMapping("/stream/{id}")
     public ResponseEntity<InputStreamResource> streamFile(
             @PathVariable String id,
@@ -49,6 +49,7 @@ public class FileController {
     ) throws Exception {
         return fileService.streamFile(id, rangeHeader);
     }
+
     @GetMapping("/thumbnail")
     public ResponseEntity<InputStreamResource> viewThumbnail(
             @RequestParam("object") String objectName

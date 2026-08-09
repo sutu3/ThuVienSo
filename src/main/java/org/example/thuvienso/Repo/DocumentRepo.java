@@ -21,4 +21,19 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity,String>, JpaS
     // Liên quan theo category, loại trừ chính nó
     Page<DocumentEntity> findByCategoryEntity_IdCategoryAndIdDocumentNotAndIsDeletedFalse(
             String idCategory, String idDocument, Pageable pageable);
+    long countByIsDeletedFalse();
+    long countByIsDeletedFalseAndStatus(org.example.thuvienso.Enum.StatusDocument status);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT COALESCE(SUM(d.viewCount),0) FROM DocumentEntity d WHERE d.isDeleted = false")
+    long sumViewCount();
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT COALESCE(SUM(d.downloadCount),0) FROM DocumentEntity d WHERE d.isDeleted = false")
+    long sumDownloadCount();
+
+    // Đếm theo loại tài liệu -> [TypeDocument, count]
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT d.typeDocument, COUNT(d) FROM DocumentEntity d WHERE d.isDeleted = false GROUP BY d.typeDocument")
+    java.util.List<Object[]> countGroupByType();
 }
