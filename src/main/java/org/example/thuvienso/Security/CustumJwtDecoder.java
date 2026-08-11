@@ -1,4 +1,4 @@
-package org.example.thuvienso.Config;
+package org.example.thuvienso.Security;
 
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;

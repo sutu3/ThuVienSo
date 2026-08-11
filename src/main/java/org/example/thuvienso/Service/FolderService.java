@@ -13,11 +13,18 @@ import java.util.List;
 @Service
 public interface FolderService {
     FolderResponse create(FolderRequest request);
+
     List<ChildFolderResponse> getAllTree(String idFolder);
+
     List<FolderResponseNoList> getAllChildFolder(String idFolder);
+
     FolderEntity getById(String id);
+
     void deletedById(String id);
+
     List<FolderResponseNoList> getAllFolderDeleted();
+
     FolderResponse restoreFolder(String id);
-    FolderResponse updateFolder(FolderForm update,String idFolder);
+
+    FolderResponse updateFolder(FolderForm update, String idFolder);
 }

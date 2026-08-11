@@ -8,7 +8,9 @@ import java.util.List;
 
 @Service
 public interface RoleService {
+
     RoleResponse createRole(RoleRequest request);
+
     List<RoleResponse> getAllRole();
 
 }

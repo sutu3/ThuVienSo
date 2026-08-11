@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/statistic")
+@RequestMapping("/statistic")
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -30,7 +30,7 @@ public class StatisticController {
                 .build();
     }
 
-    @GetMapping("/document-by-type")
+    @GetMapping("/documentByType")
     public ApiResponse<List<CountByKeyResponse>> documentByType() {
         return ApiResponse.<List<CountByKeyResponse>>builder()
                 .code(0).success(true)
@@ -39,7 +39,7 @@ public class StatisticController {
                 .build();
     }
 
-    @GetMapping("/top-viewed")
+    @GetMapping("/topViewed")
     public ApiResponse<List<CountByKeyResponse>> topViewed(
             @RequestParam(defaultValue = "10") int limit) {
         return ApiResponse.<List<CountByKeyResponse>>builder()

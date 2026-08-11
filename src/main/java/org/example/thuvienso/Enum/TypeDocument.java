@@ -9,5 +9,6 @@ public enum TypeDocument {
     LESSON,
     LECTURE,
     SCAN,
-    AUDIO
+    AUDIO,
+    BOOK
 }

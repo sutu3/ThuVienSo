@@ -5,7 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Request.BookRequest;
+import org.example.thuvienso.Dto.Request.DocumentRequest;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
+import org.example.thuvienso.Dto.Response.File.FileResponse;
+import org.example.thuvienso.Enum.StatusDocument;
+import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.BookForm;
@@ -13,14 +18,19 @@ import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Module.DocumentEntity;
+import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Repo.BookRepo;
+import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.BookService;
 import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.DocumentService;
+import org.example.thuvienso.Service.FileService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,10 +38,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BookServiceImpl implements BookService {
+    private final DocumentRepo documentRepo;
     BookRepo bookRepo;
     BookMapper bookMapper;
     CategoryService categoryService;
     DocumentService documentService;
+    FileService fileService;
 
     @Override
     public BookResponse createBook(BookRequest request) {
@@ -39,16 +51,19 @@ public class BookServiceImpl implements BookService {
             throw new AppException(ErrorCode.BOOK_IS_EXIST);
         }
         BookEntity book = bookMapper.toEntity(request);
-
         if (request.getCategoryEntity() != null && !request.getCategoryEntity().isBlank()) {
-            CategoryEntity category = categoryService.getById(request.getCategoryEntity());
-            book.setCategoryEntity(category);
+            //ném lỗi nếu ko có category
         }
-        if (request.getDocumentEntity() != null && !request.getDocumentEntity().isBlank()) {
-            DocumentEntity document = documentService.getById(request.getDocumentEntity());
-            book.setDocumentEntity(document);
-        }
+        CategoryEntity category = categoryService.getById(request.getCategoryEntity());
+        book.setCategoryEntity(category);
 
+        documentService.create(DocumentRequest.builder()
+                .status(StatusDocument.Approve.name())
+                .typeDocument(TypeDocument.BOOK.name())
+                .thumbnail("")
+                .categoryEntity(category.getIdCategory())
+                .title("Dữ liệu sách: "+request.getTitle())
+                .build());
         int total = request.getTotalCopies() == null ? 0 : request.getTotalCopies();
         book.setTotalCopies(total);
         book.setAvailableCopies(total); // ban đầu số bản còn = tổng số bản

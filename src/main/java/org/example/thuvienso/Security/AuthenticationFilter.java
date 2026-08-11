@@ -1,4 +1,4 @@
-package org.example.thuvienso.Config;
+package org.example.thuvienso.Security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
@@ -35,7 +35,11 @@ public class AuthenticationFilter {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
             "/ws",
-            "/file/thumbnail",
+            "/files/thumbnail",
+            "/categories/getAll",
+            "/books/getAll",
+            "/collections/getAll",
+            "/documents/getAll",
             // SWAGGER
             "/v3/api-docs/**",
             "/swagger-ui/**",

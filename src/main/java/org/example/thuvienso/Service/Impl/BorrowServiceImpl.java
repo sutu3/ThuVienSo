@@ -32,14 +32,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BorrowServiceImpl implements BorrowService {
+    private static final int DEFAULT_BORROW_DAYS = 14;
     private final BookRepo bookRepo;
-
     BorrowRecordRepo borrowRepo;
     BookService bookService;
     AccountRepo accountRepo;
     BorrowMapper borrowMapper;
-
-    private static final int DEFAULT_BORROW_DAYS = 14;
 
     @Override
     @Transactional

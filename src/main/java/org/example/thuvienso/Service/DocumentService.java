@@ -15,19 +15,30 @@ import java.util.List;
 @Service
 public interface DocumentService {
     DocumentResponse create(DocumentRequest request);
+
     DocumentResponse getByIdResponse(String id);
 
     DocumentEntity getById(String id);
+
     List<DocumentResponseNoList> getListByIdFolder(String idFolder);
+
     DocumentResponse update(String idDocument, DocumentForm update);
 
     void deletedById(String id);
+
     List<DocumentResponse> getAllDocumentDeleted();
+
     DocumentResponse restoreDocument(String id);
+
     Page<DocumentResponse> getAllByPage(Pageable pageable);
+
     List<DocumentResponse> searchByTitleContainingIgnoreCase(String keyword);
+
     Page<DocumentResponse> searchAdvanced(DocumentSearchRequest req, Pageable pageable);
+
     List<DocumentResponse> getNewest(int limit);
+
     List<DocumentResponse> getMostViewed(int limit);
+
     List<DocumentResponse> getRelated(String idDocument, int limit);
 }

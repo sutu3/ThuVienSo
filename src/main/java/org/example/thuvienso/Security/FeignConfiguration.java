@@ -1,4 +1,4 @@
-package org.example.thuvienso.Config;
+package org.example.thuvienso.Security;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

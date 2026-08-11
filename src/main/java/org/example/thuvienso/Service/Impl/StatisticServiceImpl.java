@@ -41,14 +41,14 @@ public class StatisticServiceImpl implements StatisticService {
                 .totalDownloads(documentRepo.sumDownloadCount())
                 .totalFiles(fileRepo.countByIsDeletedFalse());
 
-         b.totalBooks(bookRepo.countByIsDeletedFalse())
-          .totalBookCopies(bookRepo.sumTotalCopies())
-          .availableBookCopies(bookRepo.sumAvailableCopies());
+        b.totalBooks(bookRepo.countByIsDeletedFalse())
+                .totalBookCopies(bookRepo.sumTotalCopies())
+                .availableBookCopies(bookRepo.sumAvailableCopies());
 
         b.totalBorrows(borrowRepo.count())
-          .borrowingCount(borrowRepo.countByStatus(BorrowStatus.BORROWED))
-          .overdueCount(borrowRepo.countByStatus(BorrowStatus.OVERDUE))
-          .returnedCount(borrowRepo.countByStatus(BorrowStatus.RETURNED));
+                .borrowingCount(borrowRepo.countByStatus(BorrowStatus.BORROWED))
+                .overdueCount(borrowRepo.countByStatus(BorrowStatus.OVERDUE))
+                .returnedCount(borrowRepo.countByStatus(BorrowStatus.RETURNED));
 
         return b.build();
     }

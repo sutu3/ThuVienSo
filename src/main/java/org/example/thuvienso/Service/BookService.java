@@ -11,10 +11,16 @@ import java.util.List;
 @Service
 public interface BookService {
     BookResponse createBook(BookRequest request);
+
     BookResponse getByIdResponse(String id);
+
     BookEntity getById(String id);
+
     BookResponse getByBookCode(String bookCode); // phục vụ tra cứu QR
+
     List<BookResponse> getAll();
+
     void deletedById(String id);
+
     BookResponse updateBook(BookForm form, String id);
 }

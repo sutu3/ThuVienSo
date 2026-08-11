@@ -20,6 +20,7 @@ public interface BookMapper {
     @Mapping(target = "isDeleted", ignore = true)
     BookEntity toEntity(BookRequest request);
 
+    @Mapping(source = "documentEntity", target = "document")
     BookResponse toResponse(BookEntity entity);
 
     void update(@MappingTarget BookEntity book, BookForm form);

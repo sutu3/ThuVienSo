@@ -26,8 +26,8 @@ public enum ErrorCode {
     DOCUMENT_IS_EXIST(3002, "Tài liệu đã tồn tại", HttpStatus.CONFLICT),
     FOLDER_NOT_FOUND(3003, "Không tìm thấy thư mục", HttpStatus.NOT_FOUND),
     FOLDER_IS_EXIST(3004, "Thư mục đã tồn tại", HttpStatus.CONFLICT),
-    CATEGORY_NOT_FOUND(3005, "Không tìm thấy thể loại", HttpStatus.NOT_FOUND),
-    CATEGORY_IS_EXIST(3006, "Thể loại đã tồn tại", HttpStatus.CONFLICT),
+    CATEGORY_NOT_FOUND(3005, "Không tìm thấy Danh mục", HttpStatus.NOT_FOUND),
+    CATEGORY_IS_EXIST(3006, "Danh mục đã tồn tại", HttpStatus.CONFLICT),
 
     // ===== File / Collection (4xxx) =====
     FILE_NOT_FOUND(4001, "Không tìm thấy tập tin", HttpStatus.NOT_FOUND),

@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.example.thuvienso.Enum.TypeCollection;
-import org.example.thuvienso.Enum.TypeDocument;
 
 import java.util.List;
 
@@ -17,13 +16,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CollectionEntity extends BaseEntity{
+public class CollectionEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "idCollection",columnDefinition = "VARCHAR(36) COMMENT 'Id của bộ sưu tập'")
+    @Column(name = "idCollection", columnDefinition = "VARCHAR(36) COMMENT 'Id của bộ sưu tập'")
     String idCollection;
 
-    @Column(name = "collectionName",columnDefinition = "VARCHAR(256) COMMENT 'tên bộ sưu tập'")
+    @Column(name = "collectionName", columnDefinition = "VARCHAR(256) COMMENT 'tên bộ sưu tập'")
     String collectionName;
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20) COMMENT 'Loại của bộ sưu tập'", nullable = false)

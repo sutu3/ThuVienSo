@@ -8,6 +8,7 @@ public enum TypeFile {
     PDF("application/pdf"),
 
     MP4("video/mp4"),
+    MP3("audio/mpeg"),
 
     PNG("image/png"),
 
@@ -16,6 +17,7 @@ public enum TypeFile {
     DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
 
     ZIP("application/zip");
+
 
     private final String mimeType;
 

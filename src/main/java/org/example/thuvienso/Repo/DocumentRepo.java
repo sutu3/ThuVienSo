@@ -8,11 +8,15 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
-public interface DocumentRepo extends JpaRepository<DocumentEntity,String>, JpaSpecificationExecutor<DocumentEntity> {
+public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, JpaSpecificationExecutor<DocumentEntity> {
     List<DocumentEntity> findByFolderEntity_IdFolder(String idFolder);
+
     List<DocumentEntity> findAllByIsDeleted(Boolean isDeleted);
+
     List<DocumentEntity> findAllByTitle(String title);
+
     Page<DocumentEntity> findAllByIsDeleted(boolean isDeleted, Pageable pageable);
+
     Page<DocumentEntity> findByIsDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 
     // Xem nhiều nhất
@@ -21,7 +25,9 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity,String>, JpaS
     // Liên quan theo category, loại trừ chính nó
     Page<DocumentEntity> findByCategoryEntity_IdCategoryAndIdDocumentNotAndIsDeletedFalse(
             String idCategory, String idDocument, Pageable pageable);
+
     long countByIsDeletedFalse();
+
     long countByIsDeletedFalseAndStatus(org.example.thuvienso.Enum.StatusDocument status);
 
     @org.springframework.data.jpa.repository.Query(

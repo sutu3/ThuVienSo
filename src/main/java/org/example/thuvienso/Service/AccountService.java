@@ -10,8 +10,12 @@ import java.util.List;
 @Service
 public interface AccountService {
     AccountResponse createAccount(AccountRequest request);
+
     AccountEntity getAccountById(String idAccount);
+
     AccountResponse getAccounResponsetById(String idAccount);
+
     List<AccountResponse> getAllAccount();
+
     void lockAccount(String id);
 }

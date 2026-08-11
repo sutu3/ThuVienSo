@@ -11,10 +11,14 @@ import java.util.List;
 @Service
 public interface CategoryService {
     CategoryResponse createCategory(CategoryRequest request);
+
     CategoryResponse getByIdResponse(String Id);
+
     CategoryEntity getById(String Id);
 
     List<CategoryResponse> getAll();
+
     void DeletedById(String id);
-    CategoryResponse updateCategory(CategoryForm categoryForm,String id);
+
+    CategoryResponse updateCategory(CategoryForm categoryForm, String id);
 }

@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface StatisticService {
     StatisticResponse getOverview();                 // tổng quan tất cả
+
     List<CountByKeyResponse> countDocumentByType();  // biểu đồ theo loại tài liệu
+
     List<CountByKeyResponse> topViewedDocuments(int limit); // top xem nhiều
 }

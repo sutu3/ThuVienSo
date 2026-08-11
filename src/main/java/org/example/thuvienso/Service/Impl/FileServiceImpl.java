@@ -7,14 +7,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
-import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Dto.Response.FileUploadResponse;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
-import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
 import org.example.thuvienso.Module.DocumentEntity;
@@ -25,8 +22,6 @@ import org.example.thuvienso.Service.DocumentService;
 import org.example.thuvienso.Service.FileService;
 import org.example.thuvienso.Service.MinioService;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,12 +48,13 @@ public class FileServiceImpl implements FileService {
     FileMapper fileMapper;
     MinioClient minioClient;
     ThumbnailGenerator thumbnailGenerator;
+
     @Override
     @Transactional
-    public FileResponse uploadFile(MultipartFile file,String idDocument) throws Exception {
-        log.warn("Size:"+String.valueOf(file.getSize()));
+    public FileResponse uploadFile(MultipartFile file, String idDocument) throws Exception {
+        log.warn("Size:" + file.getSize());
 
-        if(file.getSize() > 42000) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
+        if (file.getSize() > 50L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
         FileUploadResponse fileUploadResponse = minioService.upload(file);
         String thumbObject = thumbnailGenerator.generate(file);
         FileEntity fileEntity = FileEntity.builder()
@@ -73,8 +69,10 @@ public class FileServiceImpl implements FileService {
                 .createdAt(LocalDateTime.now())
                 .isDeleted(false)
                 .build();
-        DocumentEntity document=documentService.getById(idDocument);
-        document.setThumbnail(thumbObject);
+        DocumentEntity document = documentService.getById(idDocument);
+        if(shouldUpdateDocumentThumbnail(document,file,thumbObject)) {
+            document.setThumbnail(thumbObject);
+        }
         fileEntity.setDocumentEntity(document);
 
         return fileMapper.toResponse(fileRepo.save(fileEntity));
@@ -82,7 +80,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public ResponseEntity<InputStreamResource> viewFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        FileEntity fileEntity=fileRepo.findById(id).orElseThrow(()->new AppException(ErrorCode.FILE_NOT_FOUND));
+        FileEntity fileEntity = fileRepo.findById(id).orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
         InputStream stream =
                 minioClient.getObject(
                         GetObjectArgs.builder()
@@ -103,7 +101,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public ResponseEntity<InputStreamResource> dowloadFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        FileEntity fileEntity=fileRepo.findById(id).orElseThrow(()->new AppException(ErrorCode.FILE_NOT_FOUND));
+        FileEntity fileEntity = fileRepo.findById(id).orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
         InputStream stream =
                 minioClient.getObject(
                         GetObjectArgs.builder()
@@ -129,9 +127,8 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileEntity getByFileName(String fileName) {
         return fileRepo.findByFileName(fileName)
-                .orElseThrow(()->new AppException(ErrorCode.FILE_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
     }
-
 
 
     @Override
@@ -210,6 +207,7 @@ public class FileServiceImpl implements FileService {
 //    fileEntity.setIsDeleted(true);
 //    fileRepo.save(fileEntity);
     }
+
     @Override
     public ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception {
         if (objectName == null || objectName.isBlank()) {
@@ -227,5 +225,15 @@ public class FileServiceImpl implements FileService {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(new InputStreamResource(stream));
+    }
+    private boolean shouldUpdateDocumentThumbnail(DocumentEntity document, MultipartFile file, String thumbObject) {
+        if (thumbObject == null) return false;
+
+        String contentType = file.getContentType();
+        boolean isImage = contentType != null && contentType.startsWith("image/");
+        if (isImage) return true; // ảnh bìa thật -> luôn ưu tiên
+
+        String current = document.getThumbnail();
+        return current == null || current.isBlank(); // còn lại chỉ set khi chưa có
     }
 }

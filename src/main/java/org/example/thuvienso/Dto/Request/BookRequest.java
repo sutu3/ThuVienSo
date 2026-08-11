@@ -17,7 +17,5 @@ public class BookRequest {
     Integer publishYear;
     String shelfLocation;
     Integer totalCopies;
-    String thumbnail;
     String categoryEntity; // idCategory
-    String documentEntity; // idDocument (tùy chọn)
 }

@@ -19,8 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,11 +26,12 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepo categoryRepo;
     CategoryMapper categoryMapper;
+
     @Override
     public CategoryResponse createCategory(CategoryRequest request) {
-        CategoryEntity categoryEntity=categoryMapper.toEntity(request);
-        if(categoryRepo.findByCategoryName(request.getCategoryName())==null){
-            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+        CategoryEntity categoryEntity = categoryMapper.toEntity(request);
+        if (!categoryRepo.findByCategoryName(request.getCategoryName()).isEmpty()) {
+            throw new AppException(ErrorCode.CATEGORY_IS_EXIST);
         }
         categoryEntity.setIsDeleted(false);
         categoryEntity.setCreatedAt(LocalDateTime.now());
@@ -47,8 +46,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryEntity getById(String idCategory) {
-        CategoryEntity categoryEntity=categoryRepo.findById(idCategory)
-                .orElseThrow(()->new AppException(ErrorCode.ROLE_NOT_FOUND));
+        CategoryEntity categoryEntity = categoryRepo.findById(idCategory)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         return categoryEntity;
     }
@@ -63,7 +62,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void DeletedById(String id) {
-        CategoryEntity category=getById(id);
+        CategoryEntity category = getById(id);
         category.setIsDeleted(true);
         category.setDeletedAt(LocalDateTime.now());
         categoryRepo.save(category);
@@ -71,8 +70,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponse updateCategory(CategoryForm categoryForm, String id) {
-        CategoryEntity categoryEntity=getById(id);
-        categoryMapper.update(categoryEntity,categoryForm);
+        CategoryEntity categoryEntity = getById(id);
+        categoryMapper.update(categoryEntity, categoryForm);
         categoryEntity.setUpdatedAt(LocalDateTime.now());
         categoryRepo.save(categoryEntity);
         return categoryMapper.toResponse(categoryEntity);

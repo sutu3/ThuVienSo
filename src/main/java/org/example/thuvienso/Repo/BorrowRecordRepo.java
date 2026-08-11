@@ -14,7 +14,9 @@ public interface BorrowRecordRepo extends JpaRepository<BorrowRecordEntity, Stri
         JpaSpecificationExecutor<BorrowRecordEntity> {
 
     List<BorrowRecordEntity> findAllByIsDeletedFalse();
+
     List<BorrowRecordEntity> findByAccount_IdAccountAndIsDeletedFalse(String idAccount);
+
     List<BorrowRecordEntity> findByStatusAndIsDeletedFalse(BorrowStatus status);
 
     int countByStatus(BorrowStatus status);

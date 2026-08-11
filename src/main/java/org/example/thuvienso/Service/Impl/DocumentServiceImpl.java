@@ -8,13 +8,13 @@ import org.example.thuvienso.Dto.Request.DocumentRequest;
 import org.example.thuvienso.Dto.Request.DocumentSearchRequest;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
+import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.DocumentForm;
 import org.example.thuvienso.Mapper.DocumentMapper;
 import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Module.DocumentEntity;
-import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.DocumentService;
@@ -39,10 +39,11 @@ public class DocumentServiceImpl implements DocumentService {
     DocumentMapper documentMapper;
     CategoryService categoryService;
     FolderService folderService;
+
     @Override
     public DocumentResponse create(DocumentRequest request) {
-        DocumentEntity document=documentMapper.toEntity(request);
-        CategoryEntity category=categoryService.getById(request.getCategoryEntity());
+        DocumentEntity document = documentMapper.toEntity(request);
+        CategoryEntity category = categoryService.getById(request.getCategoryEntity());
         document.setCategoryEntity(category);
         if (request.getFolderEntity() != null && !request.getFolderEntity().isBlank()) {
             document.setFolderEntity(folderService.getById(request.getFolderEntity()));
@@ -64,7 +65,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public DocumentEntity getById(String id) {
         return documentRepo.findById(id)
-                .orElseThrow(()->new AppException(
+                .orElseThrow(() -> new AppException(
                         ErrorCode.DOCUMENT_NOT_FOUND));
     }
 
@@ -79,15 +80,15 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentResponse update(String idDocument, DocumentForm update) {
-        DocumentEntity document=getById(idDocument);
-        documentMapper.update(document,update);
+        DocumentEntity document = getById(idDocument);
+        documentMapper.update(document, update);
         document.setUpdatedAt(LocalDateTime.now());
         return documentMapper.toResponse(documentRepo.save(document));
     }
 
     @Override
     public void deletedById(String id) {
-        DocumentEntity document=getById(id);
+        DocumentEntity document = getById(id);
         document.setIsDeleted(true);
         document.setDeletedAt(LocalDateTime.now());
         documentRepo.save(document);
@@ -102,7 +103,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentResponse restoreDocument(String id) {
-        DocumentEntity document=getById(id);
+        DocumentEntity document = getById(id);
         document.setIsDeleted(false);
         documentRepo.save(document);
         return documentMapper.toResponse(document);
@@ -116,7 +117,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<DocumentResponse> searchByTitleContainingIgnoreCase(String keyword) {
-        Specification<DocumentEntity> documentEntitySpecification=Specification.where(DocumentSpecification.hasTitle(keyword));
+        Specification<DocumentEntity> documentEntitySpecification = Specification.where(DocumentSpecification.hasTitle(keyword));
         return documentRepo.findAll(documentEntitySpecification)
                 .stream().filter(document -> !document.getIsDeleted())
                 .map(documentMapper::toResponse)
@@ -141,13 +142,15 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public List<DocumentResponse> getNewest(int limit) {
         return documentRepo.findByIsDeletedFalseOrderByCreatedAtDesc(PageRequest.of(0, limit))
-                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
+                .stream().filter(document -> document.getStatus().equals(StatusDocument.Approve))
+                .map(documentMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<DocumentResponse> getMostViewed(int limit) {
         return documentRepo.findByIsDeletedFalseOrderByViewCountDesc(PageRequest.of(0, limit))
-                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
+                .stream().filter(document -> document.getStatus().equals(StatusDocument.Approve))
+                .map(documentMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -157,6 +160,7 @@ public class DocumentServiceImpl implements DocumentService {
         return documentRepo
                 .findByCategoryEntity_IdCategoryAndIdDocumentNotAndIsDeletedFalse(
                         idCategory, idDocument, PageRequest.of(0, limit))
-                .stream().map(documentMapper::toResponse).collect(Collectors.toList());
+                .stream().filter(document -> document.getStatus().equals(StatusDocument.Approve))
+                .map(documentMapper::toResponse).collect(Collectors.toList());
     }
 }

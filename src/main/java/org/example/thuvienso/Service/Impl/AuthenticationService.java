@@ -53,7 +53,8 @@ public class AuthenticationService {
     @NonFinal
     @Value("${jwt.refreshable-duration}")
     protected Long REFRESH_DURATION;
-    public IntrospectResponse introspect(IntrospectRequest request)  {
+
+    public IntrospectResponse introspect(IntrospectRequest request) {
         var token = request.getToken();
         boolean isValid = true;
 
@@ -76,7 +77,7 @@ public class AuthenticationService {
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        var token = generateToken(account,VALID_DURATION);
+        var token = generateToken(account, VALID_DURATION);
 
         return AuthenticationResponse.builder().token(token).build();
     }
@@ -92,7 +93,7 @@ public class AuthenticationService {
                     InvalidateTokenEntity.builder().id(jit).expiryTime(expiryTime).build();
 
             invalidateTokenRepo.save(invalidatedToken);
-        } catch (AppException exception){
+        } catch (AppException exception) {
             log.info("Token already expired");
         }
     }
@@ -113,7 +114,7 @@ public class AuthenticationService {
         var user =
                 accountRepo.findByUserName(userName).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
-        var token = generateToken(user,VALID_DURATION);
+        var token = generateToken(user, VALID_DURATION);
 
         return AuthenticationResponse.builder().token(token).build();
     }
@@ -165,15 +166,14 @@ public class AuthenticationService {
 
         return signedJWT;
     }
-    public Boolean checkUserByToken(String token,String idUser) throws ParseException {
+
+    public Boolean checkUserByToken(String token, String idUser) throws ParseException {
 
         SignedJWT signedJWT = SignedJWT.parse(token);
-        String Iduser=signedJWT.getJWTClaimsSet().getSubject();
-        if(Iduser.matches(idUser)){
-            return true;
-        }
-        return false;
+        String Iduser = signedJWT.getJWTClaimsSet().getSubject();
+        return Iduser.matches(idUser);
     }
+
     //    public AuthenticationResponse forgotPassword(String email) {
 //        User user=userRepo.findByEmailWithRoles(email)
 //                .orElseThrow(()->new AppException(ErrorCode.USER_NOT_FOUND));
@@ -221,7 +221,7 @@ public class AuthenticationService {
         AccountEntity user = accountRepo.findById(scope)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-        if(passwordEncoder.matches(
+        if (passwordEncoder.matches(
                 request.getMatKhau(),
                 user.getPassword()
         )) {
@@ -231,15 +231,14 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(request.getMatKhau()));
         accountRepo.save(user);
 
-        ;
     }
+
     private String buildScope(AccountEntity account) {
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        if (account.getRoleEntity() != null)
-        {
+        if (account.getRoleEntity() != null) {
 
-                stringJoiner.add("ROLE_" + account.getRoleEntity().getRoleName());
+            stringJoiner.add("ROLE_" + account.getRoleEntity().getRoleName());
 
 
         }
@@ -247,5 +246,6 @@ public class AuthenticationService {
         return stringJoiner.toString();
     }
 
-    private record TokenInfo(String token, Date expiryDate) {}
+    private record TokenInfo(String token, Date expiryDate) {
+    }
 }

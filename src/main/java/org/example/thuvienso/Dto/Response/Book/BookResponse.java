@@ -3,6 +3,8 @@ package org.example.thuvienso.Dto.Response.Book;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
 
 @SuperBuilder
 @Data
@@ -20,4 +22,5 @@ public class BookResponse {
     Integer totalCopies;
     Integer availableCopies;
     String thumbnail;
+    DocumentResponseNoList document;
 }
