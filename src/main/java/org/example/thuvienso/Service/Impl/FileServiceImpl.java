@@ -12,6 +12,7 @@ import org.example.thuvienso.Dto.Response.FileUploadResponse;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
 import org.example.thuvienso.Module.DocumentEntity;
@@ -48,6 +49,7 @@ public class FileServiceImpl implements FileService {
     FileMapper fileMapper;
     MinioClient minioClient;
     ThumbnailGenerator thumbnailGenerator;
+    GetUrl getUrl;
 
     @Override
     @Transactional
@@ -136,6 +138,32 @@ public class FileServiceImpl implements FileService {
         return fileRepo.findByDocumentEntity_IdDocument(idDocument)
                 .stream()
                 .map(fileMapper::toResponse)
+                .map(response -> {
+                    try {
+                        if (response.getPartFile() != null
+                                && !response.getPartFile().isBlank()) {
+
+                            response.setPartFile(
+                                    getUrl.getFileUrl(response.getPartFile())
+                            );
+                        }
+                        if (response.getThumbnail() != null
+                                && !response.getThumbnail().isBlank()) {
+
+                            response.setThumbnail(
+                                    getUrl.getFileUrl(response.getThumbnail())
+                            );
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(
+                                "Không thể tạo URL cho file: "
+                                        + response.getFileName(),
+                                e
+                        );
+                    }
+
+                    return response;
+                })
                 .toList();
     }
 

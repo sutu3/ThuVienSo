@@ -13,6 +13,7 @@ public class BookRequest {
     String bookCode;
     String title;
     String author;
+    boolean isThumbnail;
     String publisher;
     Integer publishYear;
     String shelfLocation;

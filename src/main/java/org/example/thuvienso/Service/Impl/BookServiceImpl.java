@@ -14,6 +14,7 @@ import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.BookForm;
+import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.CategoryEntity;
@@ -44,28 +45,29 @@ public class BookServiceImpl implements BookService {
     CategoryService categoryService;
     DocumentService documentService;
     FileService fileService;
+    GetUrl getUrl;
 
     @Override
-    public BookResponse createBook(BookRequest request) {
+    public BookResponse createBook(BookRequest request,MultipartFile file) throws Exception {
         if (request.getBookCode() != null && bookRepo.existsByBookCode(request.getBookCode())) {
             throw new AppException(ErrorCode.BOOK_IS_EXIST);
         }
         BookEntity book = bookMapper.toEntity(request);
-        if (request.getCategoryEntity() != null && !request.getCategoryEntity().isBlank()) {
-            //ném lỗi nếu ko có category
-        }
+
         CategoryEntity category = categoryService.getById(request.getCategoryEntity());
         book.setCategoryEntity(category);
 
-        documentService.create(DocumentRequest.builder()
+        DocumentResponse documentResponse=documentService.create(DocumentRequest.builder()
                 .status(StatusDocument.Approve.name())
                 .typeDocument(TypeDocument.BOOK.name())
                 .thumbnail("")
                 .categoryEntity(category.getIdCategory())
                 .title("Dữ liệu sách: "+request.getTitle())
                 .build());
+        fileService.uploadFile(file,documentResponse.getIdDocument());
         int total = request.getTotalCopies() == null ? 0 : request.getTotalCopies();
         book.setTotalCopies(total);
+        book.setDocumentEntity(documentService.getById(documentResponse.getIdDocument()));
         book.setAvailableCopies(total); // ban đầu số bản còn = tổng số bản
         book.setIsDeleted(false);
         book.setCreatedAt(LocalDateTime.now());
@@ -96,6 +98,14 @@ public class BookServiceImpl implements BookService {
         return bookRepo.findAll().stream()
                 .filter(book -> !book.getIsDeleted())
                 .map(bookMapper::toResponse)
+                .peek(res -> {
+                    try {
+                        if (res.getThumbnail() != null && !res.getThumbnail().isBlank())
+                            res.setThumbnail(getUrl.getFileUrl(res.getThumbnail()));
+                    } catch (Exception e) {
+                        log.warn("Cannot build thumbnail url", e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 

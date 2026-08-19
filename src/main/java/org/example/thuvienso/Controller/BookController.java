@@ -10,7 +10,9 @@ import org.example.thuvienso.Dto.Request.BookRequest;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
 import org.example.thuvienso.Form.BookForm;
 import org.example.thuvienso.Service.BookService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,11 +24,20 @@ import java.util.List;
 public class BookController {
     BookService bookService;
 
-    @PostMapping
-    public ApiResponse<BookResponse> createBook(@RequestBody @Valid BookRequest request) {
+    @PostMapping(
+            value = "",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ApiResponse<BookResponse> createBook(
+            @RequestPart("book") @Valid BookRequest request,
+            @RequestPart("file") MultipartFile file
+    ) throws Exception {
+
         return ApiResponse.<BookResponse>builder()
-                .code(0).success(true).message("Tạo sách thành công")
-                .Result(bookService.createBook(request))
+                .code(0)
+                .success(true)
+                .message("Tạo sách thành công")
+                .Result(bookService.createBook(request, file))
                 .build();
     }
 

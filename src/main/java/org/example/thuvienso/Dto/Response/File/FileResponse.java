@@ -26,5 +26,4 @@ public class FileResponse {
 
     String thumbnail;
 
-    DocumentResponseNoList documentEntity;
 }
