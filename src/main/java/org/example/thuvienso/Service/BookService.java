@@ -2,6 +2,7 @@ package org.example.thuvienso.Service;
 
 import org.example.thuvienso.Dto.Request.BookRequest;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
+import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Form.BookForm;
 import org.example.thuvienso.Module.BookEntity;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Service
 public interface BookService {
-    BookResponse createBook(BookRequest request, MultipartFile file) throws Exception;
+    BookResponse createBook(BookRequest request,MultipartFile file,MultipartFile thumbnailBook) throws Exception;
 
     BookResponse getByIdResponse(String id);
 
@@ -24,4 +25,6 @@ public interface BookService {
     void deletedById(String id);
 
     BookResponse updateBook(BookForm form, String id);
+
+    FileResponse addAudio(String idBook, MultipartFile audio) throws Exception;
 }

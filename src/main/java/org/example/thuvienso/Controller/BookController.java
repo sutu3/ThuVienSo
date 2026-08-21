@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Request.BookRequest;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
+import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Form.BookForm;
 import org.example.thuvienso.Service.BookService;
 import org.springframework.http.MediaType;
@@ -30,14 +31,15 @@ public class BookController {
     )
     public ApiResponse<BookResponse> createBook(
             @RequestPart("book") @Valid BookRequest request,
-            @RequestPart("file") MultipartFile file
+            @RequestPart(value = "file",required = true) MultipartFile file,
+            @RequestPart(value = "thumbnailBook",required = false) MultipartFile thumbnailBook
     ) throws Exception {
 
         return ApiResponse.<BookResponse>builder()
                 .code(0)
                 .success(true)
                 .message("Tạo sách thành công")
-                .Result(bookService.createBook(request, file))
+                .Result(bookService.createBook(request, file,thumbnailBook))
                 .build();
     }
 
@@ -82,6 +84,21 @@ public class BookController {
         return ApiResponse.<BookResponse>builder()
                 .code(0).success(true).message("Cập nhật sách thành công")
                 .Result(bookService.updateBook(form, id))
+                .build();
+    }
+    @PostMapping(
+            value = "/{id}/audio",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ApiResponse<FileResponse> addAudio(
+            @PathVariable("id") String id,
+            @RequestPart("audio") MultipartFile audio
+    ) throws Exception {
+        return ApiResponse.<FileResponse>builder()
+                .code(0)
+                .success(true)
+                .message("Thêm audio cho sách thành công")
+                .Result(bookService.addAudio(id, audio))
                 .build();
     }
 }

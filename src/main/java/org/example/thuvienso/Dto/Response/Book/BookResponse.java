@@ -3,6 +3,7 @@ package org.example.thuvienso.Dto.Response.Book;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
 
@@ -21,6 +22,7 @@ public class BookResponse {
     String shelfLocation;
     Integer totalCopies;
     Integer availableCopies;
+    CategoryResponse categoryEntity;
     String thumbnail;
     DocumentResponseNoList document;
 }

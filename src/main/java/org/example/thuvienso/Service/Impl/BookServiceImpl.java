@@ -48,7 +48,7 @@ public class BookServiceImpl implements BookService {
     GetUrl getUrl;
 
     @Override
-    public BookResponse createBook(BookRequest request,MultipartFile file) throws Exception {
+    public BookResponse createBook(BookRequest request,MultipartFile file,MultipartFile thumbnailBook) throws Exception {
         if (request.getBookCode() != null && bookRepo.existsByBookCode(request.getBookCode())) {
             throw new AppException(ErrorCode.BOOK_IS_EXIST);
         }
@@ -65,6 +65,10 @@ public class BookServiceImpl implements BookService {
                 .title("Dữ liệu sách: "+request.getTitle())
                 .build());
         fileService.uploadFile(file,documentResponse.getIdDocument());
+        if (thumbnailBook != null && !thumbnailBook.isEmpty()) {
+            fileService.uploadFile(thumbnailBook, documentResponse.getIdDocument());
+        }
+
         int total = request.getTotalCopies() == null ? 0 : request.getTotalCopies();
         book.setTotalCopies(total);
         book.setDocumentEntity(documentService.getById(documentResponse.getIdDocument()));
@@ -130,5 +134,24 @@ public class BookServiceImpl implements BookService {
         book.setUpdatedAt(LocalDateTime.now());
         bookRepo.save(book);
         return bookMapper.toResponse(book);
+    }
+    @Override
+    public FileResponse addAudio(String idBook, MultipartFile audio) throws Exception {
+        // 1) Lấy sách + kiểm tra tồn tại
+        BookEntity book = getById(idBook);
+
+        // 2) Sách phải có document liên kết (nơi chứa các file)
+        if (book.getDocumentEntity() == null) {
+            throw new AppException(ErrorCode.DOCUMENT_NOT_FOUND);
+        }
+
+        // 3) Chỉ cho phép file audio
+        String contentType = audio.getContentType();
+        if (contentType == null || !contentType.startsWith("audio/")) {
+            throw new AppException(ErrorCode.FILE_NOT_SUPPORTED);
+        }
+
+        // 4) Upload vào đúng document của sách
+        return fileService.uploadFile(audio, book.getDocumentEntity().getIdDocument());
     }
 }

@@ -15,6 +15,7 @@ import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
+import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Repo.DocumentRepo;
@@ -42,6 +43,8 @@ import java.util.List;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileServiceImpl implements FileService {
+
+
     private final DocumentRepo documentRepo;
     DocumentService documentService;
     FileRepo fileRepo;
@@ -54,28 +57,23 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file, String idDocument) throws Exception {
-        log.warn("Size:" + file.getSize());
+        if (file.getSize() > 100L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
 
-        if (file.getSize() > 50L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
-        FileUploadResponse fileUploadResponse = minioService.upload(file);
-        String thumbObject = thumbnailGenerator.generate(file);
+        FileUploadResponse uploaded = minioService.upload(file);
+        DocumentEntity document = documentService.getById(idDocument);
+
+        // Toàn bộ logic thumbnail nằm trong helper
+        String thumbObject = thumbnailGenerator.applyThumbnail(file, document);
+
         FileEntity fileEntity = FileEntity.builder()
-                .partFile(fileUploadResponse.getObjectName())
-                .fileName(fileUploadResponse.getOriginalFileName())
-                .typeFile(
-                        TypeFile.fromMimeType(
-                                fileUploadResponse.getContentType()
-                        )
-                )
+                .partFile(uploaded.getObjectName())
+                .fileName(uploaded.getOriginalFileName())
+                .typeFile(TypeFile.fromMimeType(uploaded.getContentType()))
                 .thumbnail(thumbObject)
                 .createdAt(LocalDateTime.now())
                 .isDeleted(false)
+                .documentEntity(document)
                 .build();
-        DocumentEntity document = documentService.getById(idDocument);
-        if(shouldUpdateDocumentThumbnail(document,file,thumbObject)) {
-            document.setThumbnail(thumbObject);
-        }
-        fileEntity.setDocumentEntity(document);
 
         return fileMapper.toResponse(fileRepo.save(fileEntity));
     }
@@ -253,15 +251,5 @@ public class FileServiceImpl implements FileService {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(new InputStreamResource(stream));
-    }
-    private boolean shouldUpdateDocumentThumbnail(DocumentEntity document, MultipartFile file, String thumbObject) {
-        if (thumbObject == null) return false;
-
-        String contentType = file.getContentType();
-        boolean isImage = contentType != null && contentType.startsWith("image/");
-        if (isImage) return true; // ảnh bìa thật -> luôn ưu tiên
-
-        String current = document.getThumbnail();
-        return current == null || current.isBlank(); // còn lại chỉ set khi chưa có
     }
 }

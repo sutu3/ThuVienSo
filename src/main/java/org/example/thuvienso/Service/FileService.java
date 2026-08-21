@@ -30,4 +30,6 @@ public interface FileService {
     void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
 
     ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception;
+
+
 }
