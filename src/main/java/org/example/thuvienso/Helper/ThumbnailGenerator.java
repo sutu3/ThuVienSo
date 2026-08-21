@@ -26,12 +26,12 @@ public class ThumbnailGenerator {
     private static final float PDF_DPI = 100f;
     private static final String REAL_PREFIX = "thumbnails/";
 
-    private final MinioClient minioClient;
+    private final LocalStorage localStorage;
     private final DocumentRepo documentRepo;
 
-    public ThumbnailGenerator(MinioClient minioClient,
+    public ThumbnailGenerator(LocalStorage localStorage,
                               DocumentRepo documentRepo) {
-        this.minioClient = minioClient;
+        this.localStorage = localStorage;
         this.documentRepo = documentRepo;
     }
 
@@ -76,21 +76,14 @@ public class ThumbnailGenerator {
         }
     }
 
+    /** Resize ảnh về kích thước thumbnail, ghi ra ổ đĩa cục bộ, trả object name. */
     private String saveThumbnail(BufferedImage source) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Thumbnails.of(source).size(WIDTH, HEIGHT).outputFormat("jpg").toOutputStream(out);
         byte[] bytes = out.toByteArray();
 
         String objectName = REAL_PREFIX + UUID.randomUUID() + ".jpg";
-        try (InputStream in = new ByteArrayInputStream(bytes)) {
-            minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(BUCKET)
-                    .object(objectName)
-                    .stream(in, bytes.length, -1)
-                    .contentType("image/jpeg")
-                    .build());
-        }
-        return objectName;
+        return localStorage.store(bytes, objectName);
     }
 
     private String iconFor(String contentType, String fileName) {
@@ -112,9 +105,9 @@ public class ThumbnailGenerator {
 
         return "icons/file.png";
     }
+
     /**
-     * Sinh thumbnail cho file, gán cho document nếu hợp lý, và trả object name
-     * để FileEntity dùng. Toàn bộ logic thumbnail nằm ở đây.
+     * Sinh thumbnail cho file, gán cho document nếu hợp lý, và trả object name.
      */
     public String applyThumbnail(MultipartFile file, DocumentEntity document) {
         String thumbObject = generate(file);
@@ -140,7 +133,7 @@ public class ThumbnailGenerator {
             return true;
         }
 
-        // 2) PDF render thật -> ghi đè khi document CHƯA có ảnh thật (đang trống hoặc là icon)
+        // 2) PDF render thật -> ghi đè khi document CHƯA có ảnh thật
         boolean isRealThumb = thumbObject.startsWith(REAL_PREFIX);
         if (isRealThumb) {
             return !docHasRealThumb;

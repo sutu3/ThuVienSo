@@ -20,6 +20,7 @@ public class OrphanFileCleanupJob {
 
     private final FileRepo fileRepo;
     private final MinioClient minioClient;
+    private final LocalStorage localStorage;
 
     // Chạy mỗi giờ, xóa file mồ côi tạo cách đây > 24h
     @Scheduled(cron = "0 0 * * * *")
@@ -29,10 +30,7 @@ public class OrphanFileCleanupJob {
 
         for (FileEntity f : orphans) {
             try {
-                minioClient.removeObject(RemoveObjectArgs.builder()
-                        .bucket("thuvienso")
-                        .object(f.getPartFile())
-                        .build());
+                localStorage.delete(f.getPartFile());
                 fileRepo.delete(f);
                 log.info("Đã dọn file mồ côi: {}", f.getPartFile());
             } catch (Exception e) {

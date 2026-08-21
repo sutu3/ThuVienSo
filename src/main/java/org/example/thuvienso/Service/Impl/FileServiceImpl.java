@@ -13,6 +13,7 @@ import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Helper.GetUrl;
+import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
 import org.example.thuvienso.Module.BookEntity;
@@ -52,6 +53,7 @@ public class FileServiceImpl implements FileService {
     FileMapper fileMapper;
     MinioClient minioClient;
     ThumbnailGenerator thumbnailGenerator;
+    LocalStorage localStorage;
     GetUrl getUrl;
 
     @Override
@@ -79,51 +81,25 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public ResponseEntity<InputStreamResource> viewFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        FileEntity fileEntity = fileRepo.findById(id).orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
-        InputStream stream =
-                minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket("thuvienso")
-                                .object(fileEntity.getPartFile())
-                                .build()
-                );
+    public ResponseEntity<InputStreamResource> viewFile(String id) throws IOException {
+        FileEntity fileEntity = fileRepo.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+        InputStream stream = localStorage.load(fileEntity.getPartFile());
         return ResponseEntity.ok()
-                .contentType(
-                        MediaType.parseMediaType(
-                                fileEntity.getTypeFile().getMimeType()
-                        )
-                )
-                .body(
-                        new InputStreamResource(stream)
-                );
+                .contentType(MediaType.parseMediaType(fileEntity.getTypeFile().getMimeType()))
+                .body(new InputStreamResource(stream));
     }
-
     @Override
-    public ResponseEntity<InputStreamResource> dowloadFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        FileEntity fileEntity = fileRepo.findById(id).orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
-        InputStream stream =
-                minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket("thuvienso")
-                                .object(fileEntity.getPartFile())
-                                .build()
-                );
+    public ResponseEntity<InputStreamResource> dowloadFile(String id) throws IOException {
+        FileEntity fileEntity = fileRepo.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+        InputStream stream = localStorage.load(fileEntity.getPartFile());
         return ResponseEntity.ok()
-                .contentType(
-                        MediaType.parseMediaType(
-                                fileEntity.getTypeFile().getMimeType()
-                        )
-                )
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + fileEntity.getPartFile()
-                )
-                .body(
-                        new InputStreamResource(stream)
-                );
+                .contentType(MediaType.parseMediaType(fileEntity.getTypeFile().getMimeType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileEntity.getFileName() + "\"")
+                .body(new InputStreamResource(stream));
     }
-
     @Override
     public FileEntity getByFileName(String fileName) {
         return fileRepo.findByFileName(fileName)
@@ -171,37 +147,18 @@ public class FileServiceImpl implements FileService {
         FileEntity fileEntity = fileRepo.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
 
-        // Lấy kích thước object từ MinIO
-        StatObjectResponse stat = minioClient.statObject(
-                StatObjectArgs.builder()
-                        .bucket("thuvienso")
-                        .object(fileEntity.getPartFile())
-                        .build()
-        );
-        long fileSize = stat.size();
-        String contentType = stat.contentType(); // dùng contentType thật, không dùng enum
+        String objectName = fileEntity.getPartFile();
+        long fileSize = localStorage.size(objectName);
+        String contentType = fileEntity.getTypeFile().getMimeType();
 
-        long start = 0;
-        long end = fileSize - 1;
-
-        // Parse header dạng "bytes=START-END"
+        long start = 0, end = fileSize - 1;
         if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
             String[] ranges = rangeHeader.substring(6).split("-");
             start = Long.parseLong(ranges[0]);
-            if (ranges.length > 1 && !ranges[1].isEmpty()) {
-                end = Long.parseLong(ranges[1]);
-            }
+            if (ranges.length > 1 && !ranges[1].isEmpty()) end = Long.parseLong(ranges[1]);
         }
         long length = end - start + 1;
-
-        InputStream stream = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket("thuvienso")
-                        .object(fileEntity.getPartFile())
-                        .offset(start)
-                        .length(length)
-                        .build()
-        );
+        InputStream stream = localStorage.loadRange(objectName, start, length);
 
         return ResponseEntity.status(rangeHeader == null ? HttpStatus.OK : HttpStatus.PARTIAL_CONTENT)
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
@@ -210,46 +167,21 @@ public class FileServiceImpl implements FileService {
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(new InputStreamResource(stream));
     }
-
     @Override
-    public void deleteFile(String id) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-
+    public void deleteFile(String id) throws IOException {
         FileEntity fileEntity = fileRepo.findById(id)
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.FILE_NOT_FOUND));
-
-        // xóa object trong MinIO
-        minioClient.removeObject(
-                RemoveObjectArgs.builder()
-                        .bucket("thuvienso")
-                        .object(fileEntity.getPartFile())
-                        .build()
-        );
-
-        // xóa DB
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+        localStorage.delete(fileEntity.getPartFile());
         fileRepo.delete(fileEntity);
-
-        // hoặc soft delete
-//    fileEntity.setIsDeleted(true);
-//    fileRepo.save(fileEntity);
     }
 
     @Override
     public ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception {
-        if (objectName == null || objectName.isBlank()) {
+        if (objectName == null || objectName.isBlank())
             throw new AppException(ErrorCode.FILE_NOT_FOUND);
-        }
-
-        InputStream stream =
-                minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket("thuvienso")
-                                .object(objectName)
-                                .build()
-                );
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(new InputStreamResource(stream));
+        InputStream stream = localStorage.load(objectName);
+        MediaType type = objectName.toLowerCase().endsWith(".png")
+                ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;   // icon .png, thumbnail .jpg
+        return ResponseEntity.ok().contentType(type).body(new InputStreamResource(stream));
     }
 }

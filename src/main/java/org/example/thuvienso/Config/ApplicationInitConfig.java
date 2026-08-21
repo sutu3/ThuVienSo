@@ -12,6 +12,7 @@ import org.example.thuvienso.Dto.Response.Collection.CollectionResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Enum.FileIcon;
 import org.example.thuvienso.Enum.TypeCollection;
+import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Module.AccountEntity;
 import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Module.RoleEntity;
@@ -37,8 +38,8 @@ import static io.minio.StatObjectArgs.*;
 @Slf4j
 public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
-    private static final String BUCKET = "thuvienso";
     MinioClient minioClient;
+    LocalStorage localStorage;
 
 
     @Bean
@@ -48,7 +49,6 @@ public class ApplicationInitConfig {
 
             // Initial data setup
             if (accountRepo.findByUserName("admin").isEmpty()) {
-                initBucket();
 
                 initIcons();
 
@@ -133,76 +133,16 @@ public class ApplicationInitConfig {
     }
 
     private void uploadIcon(FileIcon icon) {
-
         try {
-
-            minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(BUCKET)
-                            .object(icon.getObjectName())
-                            .build()
-            );
-
-            log.info("{} already exists.", icon.getObjectName());
-            return;
-
-        } catch (Exception ignored) {
-        }
-
-        try {
-
-            ClassPathResource resource =
-                    new ClassPathResource(icon.getObjectName());
-
+            if (localStorage.exists(icon.getObjectName())) return;
+            ClassPathResource resource = new ClassPathResource(icon.getObjectName());
             try (InputStream in = resource.getInputStream()) {
-
-                minioClient.putObject(
-                        PutObjectArgs.builder()
-                                .bucket(BUCKET)
-                                .object(icon.getObjectName())
-                                .stream(in, resource.contentLength(), -1)
-                                .contentType("image/png")
-                                .build()
-                );
-
+                localStorage.store(icon.getObjectName().getBytes(), in.toString());
             }
-
-            log.info("{} uploaded.", icon.getObjectName());
-
+            log.info("{} copied to storage.", icon.getObjectName());
         } catch (Exception ex) {
-
-            log.error("Upload {} failed", icon.getObjectName(), ex);
-
+            log.error("Copy icon {} failed", icon.getObjectName(), ex);
         }
-    }
-    private void initBucket() {
-
-        try {
-
-            boolean exists = minioClient.bucketExists(
-                    BucketExistsArgs.builder()
-                            .bucket(BUCKET)
-                            .build()
-            );
-
-            if (!exists) {
-
-                minioClient.makeBucket(
-                        MakeBucketArgs.builder()
-                                .bucket(BUCKET)
-                                .build()
-                );
-
-                log.info("Bucket {} created.", BUCKET);
-
-            }
-
-        } catch (Exception ex) {
-
-            log.error("Create bucket failed", ex);
-
-        }
-
     }
     private void initIcons() {
 
