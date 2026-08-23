@@ -105,4 +105,13 @@ public class FolderController {
                 .Result(folderService.updateFolder(update, idFolder))
                 .build();
     }
+    @GetMapping("/rootDirectory")
+    public ApiResponse<FolderResponseNoList> getAllFolderLevel1() {
+        return ApiResponse.<FolderResponseNoList>builder()
+                .code(0)
+                .message("Lấy thư mục gốc thành công")
+                .success(true)
+                .Result(folderService.getAllFolderLevel1())
+                .build();
+    }
 }

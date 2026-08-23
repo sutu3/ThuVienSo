@@ -47,11 +47,16 @@ public class ApplicationInitConfig {
                                         RoleRepo roleRepo, FolderService folderService, CollectionService collectionService) {
         return args -> {
 
+
             // Initial data setup
             if (accountRepo.findByUserName("admin").isEmpty()) {
 
                 initIcons();
-
+                FolderResponse folderSư5=folderService.create(FolderRequest.builder()
+                        .folderName("Sư đoàn 5")
+                        .description("Thư mục gốc")
+                        .parentFolder(null)
+                        .build());
                 RoleEntity vaiTro =
                         roleRepo.findByRoleName("admin")
                                 .orElseGet(() -> {

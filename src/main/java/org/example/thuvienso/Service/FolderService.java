@@ -1,5 +1,6 @@
 package org.example.thuvienso.Service;
 
+import org.example.thuvienso.Dto.Request.CopyFolderRequest;
 import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
@@ -27,4 +28,11 @@ public interface FolderService {
     FolderResponse restoreFolder(String id);
 
     FolderResponse updateFolder(FolderForm update, String idFolder);
+
+    FolderResponseNoList getAllFolderLevel1();
+
+    FolderResponse copyFolder(String idFolder, CopyFolderRequest copy);
+
+    //FolderResponse moveFolder(String idFolder,FolderForm update);
+
 }

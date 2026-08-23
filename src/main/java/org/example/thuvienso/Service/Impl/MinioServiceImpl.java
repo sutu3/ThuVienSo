@@ -27,9 +27,7 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public FileUploadResponse upload(MultipartFile file) throws Exception {
         String objectName = buildPath.buildObjectPath(file);
-        try (InputStream in = file.getInputStream()) {
-            localStorage.store(objectName.getBytes(), in.toString());
-        }
+        localStorage.store(file.getBytes(), objectName);   // content trước, objectName sau
         return FileUploadResponse.builder()
                 .objectName(objectName)
                 .originalFileName(file.getOriginalFilename())

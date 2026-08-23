@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import org.example.thuvienso.Dto.Response.Account.AccountResponse;
 import org.example.thuvienso.Module.AccountEntity;
 
 import java.util.List;
@@ -20,5 +21,4 @@ public class RoleResponse {
 
     String roleName;
 
-    List<AccountEntity> account;
 }

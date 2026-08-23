@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.thuvienso.Dto.Request.CopyFolderRequest;
 import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
@@ -96,4 +97,17 @@ public class FolderServiceImpl implements FolderService {
         folder.setUpdatedAt(LocalDateTime.now());
         return folderMapper.toResponse(folderRepo.save(folder));
     }
+
+    @Override
+    public FolderResponseNoList getAllFolderLevel1() {
+        return folderMapper.toResponseNoList(folderRepo.findByFolderName("Sư đoàn 5")
+                .orElseThrow(() -> new AppException(ErrorCode.FOLDER_NOT_FOUND)));
+    }
+
+    @Override
+    public FolderResponse copyFolder(String idFolder, CopyFolderRequest copy) {
+
+        return null;
+    }
+
 }

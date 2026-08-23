@@ -40,6 +40,7 @@ public class AuthenticationFilter {
             "/books/getAll",
             "/collections/getAll",
             "/documents/getAll",
+            "/files/raw/**",
             // SWAGGER
             "/v3/api-docs/**",
             "/swagger-ui/**",
@@ -52,6 +53,13 @@ public class AuthenticationFilter {
         httpSecurity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers ->
+                        headers
+                                .frameOptions(frame -> frame.disable())
+                                .contentSecurityPolicy(csp ->
+                                        csp.policyDirectives("frame-ancestors *")
+                                )
+                )
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

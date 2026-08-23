@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
+import org.example.thuvienso.Enum.BookFileRole;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Module.DocumentEntity;
 
@@ -23,6 +24,7 @@ public class FileResponse {
     String partFile;
 
     TypeFile typeFile;
+    BookFileRole bookFile;
 
     String thumbnail;
 

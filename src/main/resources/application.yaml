@@ -42,8 +42,13 @@ springdoc:
     path: /swagger-ui.html
 # Xoá toàn bộ block mini:
 storage:
-  location: ./storage          # thư mục gốc lưu file trên máy chủ
-  base-url: http://localhost:8080/files/raw   # đổi sang host công khai khi deploy
+  location: D:/Code/ThuVienSo/storage         # thư mục gốc lưu file trên máy chủ
+  base-url: http://192.168.2.46:8080/files/raw   # đổi sang host công khai khi deploy
+mini:
+  url: http://192.168.2.46:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: thuvienso
 
 jwt:
   valid-duration: 3600

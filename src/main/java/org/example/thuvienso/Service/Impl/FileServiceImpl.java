@@ -9,6 +9,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Dto.Response.FileUploadResponse;
+import org.example.thuvienso.Enum.BookFileRole;
+import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
@@ -111,9 +113,13 @@ public class FileServiceImpl implements FileService {
     public List<FileResponse> getByIdDocument(String idDocument) {
         return fileRepo.findByDocumentEntity_IdDocument(idDocument)
                 .stream()
-                .map(fileMapper::toResponse)
-                .map(response -> {
+                .map(file -> {
+                    FileResponse response = fileMapper.toResponse(file);
+                    // gán vai trò dựa vào entity (còn documentEntity)
+                    response.setBookFile(resolveBookRole(file));
                     try {
+
+
                         if (response.getPartFile() != null
                                 && !response.getPartFile().isBlank()) {
 
@@ -131,11 +137,10 @@ public class FileServiceImpl implements FileService {
                     } catch (Exception e) {
                         throw new RuntimeException(
                                 "Không thể tạo URL cho file: "
-                                        + response.getFileName(),
+                                        + file.getFileName(),
                                 e
                         );
                     }
-
                     return response;
                 })
                 .toList();
@@ -183,5 +188,21 @@ public class FileServiceImpl implements FileService {
         MediaType type = objectName.toLowerCase().endsWith(".png")
                 ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;   // icon .png, thumbnail .jpg
         return ResponseEntity.ok().contentType(type).body(new InputStreamResource(stream));
+    }
+    private BookFileRole resolveBookRole(FileEntity file) {
+        DocumentEntity doc = file.getDocumentEntity();
+        // chỉ phân loại khi document là BOOK
+        if (doc == null || doc.getTypeDocument() != TypeDocument.BOOK) {
+            return BookFileRole.KHÁC;
+        }
+        TypeFile type = file.getTypeFile();
+        if (type == null) return BookFileRole.KHÁC;
+
+        return switch (type) {
+            case PNG, JPG      -> BookFileRole.THUMBNAIL;   // ảnh -> ảnh bìa
+            case PDF           -> BookFileRole.Sách_Số;       // pdf -> sách số
+            case MP3           -> BookFileRole.Sách_Nói;  // audio -> sách nói
+            default            -> BookFileRole.KHÁC;       // mp4/docx/zip...
+        };
     }
 }
