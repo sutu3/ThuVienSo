@@ -26,6 +26,7 @@ public enum ErrorCode {
     DOCUMENT_IS_EXIST(3002, "Tài liệu đã tồn tại", HttpStatus.CONFLICT),
     FOLDER_NOT_FOUND(3003, "Không tìm thấy thư mục", HttpStatus.NOT_FOUND),
     FOLDER_IS_EXIST(3004, "Thư mục đã tồn tại", HttpStatus.CONFLICT),
+    FOLDER_NOT_DELETED(4007, "Thư mục chưa được xóa mềm, không thể xóa cứng", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(3005, "Không tìm thấy Danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_IS_EXIST(3006, "Danh mục đã tồn tại", HttpStatus.CONFLICT),
 

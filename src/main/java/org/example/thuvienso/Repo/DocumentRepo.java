@@ -1,5 +1,6 @@
 package org.example.thuvienso.Repo;
 
+import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, JpaSpecificationExecutor<DocumentEntity> {
     List<DocumentEntity> findByFolderEntity_IdFolder(String idFolder);
@@ -42,4 +44,7 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, Jpa
     @org.springframework.data.jpa.repository.Query(
             "SELECT d.typeDocument, COUNT(d) FROM DocumentEntity d WHERE d.isDeleted = false GROUP BY d.typeDocument")
     java.util.List<Object[]> countGroupByType();
+
+    Optional<DocumentEntity> findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(
+            String idFolder, TypeDocument typeDocument);
 }

@@ -24,5 +24,11 @@ public class CategoryEntity extends BaseEntity{
     String categoryName;
     @OneToMany(mappedBy="categoryEntity")
     List<DocumentEntity> documentEntity;
+    @Column(
+            name = "isDisplay",
+            nullable = false,
+            columnDefinition = "TINYINT(1) DEFAULT 1 COMMENT 'Hiển thị danh mục'"
+    )
+    Boolean isDisplay = true;
 
 }

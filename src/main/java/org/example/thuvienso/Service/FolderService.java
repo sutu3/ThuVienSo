@@ -33,6 +33,8 @@ public interface FolderService {
 
     FolderResponse copyFolder(String idFolder, CopyFolderRequest copy);
 
-    //FolderResponse moveFolder(String idFolder,FolderForm update);
+    FolderResponse cutFolder(String idFolder, CopyFolderRequest copy);
+
+    void hardDeleteFolder(String id);
 
 }

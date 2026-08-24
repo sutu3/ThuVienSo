@@ -123,5 +123,26 @@ public class FileController {
                 .success(true)
                 .build();
     }
+    @PostMapping(value = "/upload/folder/{idFolder}", consumes = "multipart/form-data")
+    public ApiResponse<List<FileResponse>> uploadFilesToFolder(
+            @RequestPart("file") MultipartFile[] files,
+            @PathVariable("idFolder") String idFolder
+    ) throws Exception {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0).success(true)
+                .message("Upload file vào folder thành công")
+                .Result(fileService.uploadFilesToFolder(files, idFolder))
+                .build();
+    }
+    @GetMapping("/folder/{idFolder}")
+    public ApiResponse<List<FileResponse>> getAllFileByIdDocument(
+           @PathVariable("idFolder") String idFolder
+    ) {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0).success(true)
+                .message("Lấy danh sách file thành công")
+                .Result(fileService.getAllFileByFolder(idFolder))
+                .build();
+    }
 
 }

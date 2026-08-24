@@ -41,6 +41,7 @@ public class AuthenticationFilter {
             "/collections/getAll",
             "/documents/getAll",
             "/files/raw/**",
+            "/files/document/**",
             // SWAGGER
             "/v3/api-docs/**",
             "/swagger-ui/**",

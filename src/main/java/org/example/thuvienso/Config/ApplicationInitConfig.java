@@ -6,18 +6,23 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.thuvienso.Dto.Request.CategoryRequest;
 import org.example.thuvienso.Dto.Request.CollectionRequest;
 import org.example.thuvienso.Dto.Request.FolderRequest;
+import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
 import org.example.thuvienso.Dto.Response.Collection.CollectionResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Enum.FileIcon;
 import org.example.thuvienso.Enum.TypeCollection;
 import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Module.AccountEntity;
+import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Module.RoleEntity;
 import org.example.thuvienso.Repo.AccountRepo;
+import org.example.thuvienso.Repo.CategoryRepo;
 import org.example.thuvienso.Repo.RoleRepo;
+import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.CollectionService;
 import org.example.thuvienso.Service.FolderService;
 import org.springframework.boot.ApplicationRunner;
@@ -43,8 +48,9 @@ public class ApplicationInitConfig {
 
 
     @Bean
-    ApplicationRunner applicationRunner(AccountRepo accountRepo,
-                                        RoleRepo roleRepo, FolderService folderService, CollectionService collectionService) {
+    ApplicationRunner applicationRunner(AccountRepo accountRepo, CategoryService categoryService,
+                                        RoleRepo roleRepo, FolderService folderService, CollectionService collectionService,
+                                        CategoryRepo categoryRepo) {
         return args -> {
 
 
@@ -52,6 +58,13 @@ public class ApplicationInitConfig {
             if (accountRepo.findByUserName("admin").isEmpty()) {
 
                 initIcons();
+                CategoryResponse categoryResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Khác")
+                        .build());
+                CategoryEntity category=categoryService.getById(categoryResponse.getIdCategory());
+                category.setIsDisplay(false);
+                categoryRepo.save(category);
+
                 FolderResponse folderSư5=folderService.create(FolderRequest.builder()
                         .folderName("Sư đoàn 5")
                         .description("Thư mục gốc")

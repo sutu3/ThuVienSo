@@ -10,4 +10,5 @@ public interface FolderRepo extends JpaRepository<FolderEntity,String> {
     List<FolderEntity> findALlByIsDeleted(Boolean isDeleted);
     List<FolderEntity> findByParentFolderIsNull();
     Optional<FolderEntity> findByFolderName(String folderName);
+    boolean existsByParentFolder_IdFolderAndFolderName(String idFolder,String folderName);
 }

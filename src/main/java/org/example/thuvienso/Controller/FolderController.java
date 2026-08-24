@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.ApiResponse;
+import org.example.thuvienso.Dto.Request.CopyFolderRequest;
 import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
@@ -112,6 +113,33 @@ public class FolderController {
                 .message("Lấy thư mục gốc thành công")
                 .success(true)
                 .Result(folderService.getAllFolderLevel1())
+                .build();
+    }
+    @PostMapping("/{id}/copy")
+    public ApiResponse<FolderResponse> copyFolder(@PathVariable String id,@RequestBody @Valid CopyFolderRequest copyFolderRequest) {
+        return ApiResponse.<FolderResponse>builder()
+                .code(0)
+                .message("Sao chép thư mục thành công")
+                .success(true)
+                .Result(folderService.copyFolder(id,copyFolderRequest))
+                .build();
+    }
+    @PostMapping("/{id}/move")
+    public ApiResponse<FolderResponse> moveFolder(@PathVariable String id,@RequestBody @Valid CopyFolderRequest copyFolderRequest) {
+        return ApiResponse.<FolderResponse>builder()
+                .code(0)
+                .message("Chuyển thư mục gốc thành công")
+                .success(true)
+                .Result(folderService.cutFolder(id,copyFolderRequest))
+                .build();
+    }
+    @DeleteMapping("/hard/{id}")
+    public ApiResponse<Void> hardDeleteFolder(@PathVariable("id") String id) {
+        folderService.hardDeleteFolder(id);
+        return ApiResponse.<Void>builder()
+                .code(0)
+                .message("Xóa cứng thư mục thành công")
+                .success(true)
                 .build();
     }
 }

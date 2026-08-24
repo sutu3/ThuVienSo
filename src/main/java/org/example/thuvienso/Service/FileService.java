@@ -31,5 +31,8 @@ public interface FileService {
 
     ResponseEntity<InputStreamResource> viewThumbnail(String objectName) throws Exception;
 
+    List<FileResponse> uploadFilesToFolder(MultipartFile[] files, String idFolder) throws Exception;
+
+    List<FileResponse> getAllFileByFolder(String idFolder);
 
 }

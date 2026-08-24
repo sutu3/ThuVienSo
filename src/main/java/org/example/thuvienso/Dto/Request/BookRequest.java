@@ -14,6 +14,7 @@ public class BookRequest {
     String title;
     String author;
     boolean isThumbnail;
+    String description;
     String publisher;
     Integer publishYear;
     String shelfLocation;

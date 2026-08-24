@@ -7,9 +7,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.thuvienso.Dto.Request.DocumentRequest;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
+import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
+import org.example.thuvienso.Dto.Response.File.FileResponseNoList;
 import org.example.thuvienso.Dto.Response.FileUploadResponse;
 import org.example.thuvienso.Enum.BookFileRole;
+import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
@@ -19,10 +24,13 @@ import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
 import org.example.thuvienso.Module.BookEntity;
+import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Module.FileEntity;
+import org.example.thuvienso.Repo.CategoryRepo;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Repo.FileRepo;
+import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.DocumentService;
 import org.example.thuvienso.Service.FileService;
 import org.example.thuvienso.Service.MinioService;
@@ -39,13 +47,17 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileServiceImpl implements FileService {
+    private final CategoryRepo categoryRepo;
 
 
     private final DocumentRepo documentRepo;
@@ -57,12 +69,13 @@ public class FileServiceImpl implements FileService {
     ThumbnailGenerator thumbnailGenerator;
     LocalStorage localStorage;
     GetUrl getUrl;
+    CategoryService categoryService;
 
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file, String idDocument) throws Exception {
         if (file.getSize() > 100L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
-
+        if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(idDocument,file.getOriginalFilename(),TypeFile.fromMimeType(file.getContentType()))) throw new AppException(ErrorCode.FILE_IS_EXIST);
         FileUploadResponse uploaded = minioService.upload(file);
         DocumentEntity document = documentService.getById(idDocument);
 
@@ -204,5 +217,60 @@ public class FileServiceImpl implements FileService {
             case MP3           -> BookFileRole.Sách_Nói;  // audio -> sách nói
             default            -> BookFileRole.KHÁC;       // mp4/docx/zip...
         };
+    }
+    @Override
+    @Transactional
+    public List<FileResponse> uploadFilesToFolder(MultipartFile[] files, String idFolder) throws Exception {
+        if (files == null || files.length == 0) throw new AppException(ErrorCode.FILE_NOT_FOUND);
+
+        // 1. Folder đã có document "chứa file" chưa? Có -> tái dùng, chưa -> tạo mới
+        String idDocument = documentRepo
+                .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolder, TypeDocument.DOCUMENT)
+                .map(DocumentEntity::getIdDocument)
+                .orElseGet(() -> {
+                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    return documentService.create(DocumentRequest.builder()
+                            .status(StatusDocument.Approve.name())
+                            .typeDocument(TypeDocument.DOCUMENT.name())
+                            .thumbnail("")
+                            .categoryEntity(category.getIdCategory())
+                            .folderEntity(idFolder)
+                            .title("Document chứa file trong Folder")
+                            .build()).getIdDocument();
+                });
+
+        // 2. Upload lần lượt từng file vào document đó (mỗi file tự suy typeFile + thumbnail)
+        List<FileResponse> responses = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file != null && !file.isEmpty()) {
+                responses.add(uploadFile(file, idDocument));
+            }
+        }
+        return responses;
+    }
+
+    @Override
+    @Transactional
+    public List<FileResponse> getAllFileByFolder(String idFolder) {
+        List<DocumentEntity> documentEntities = documentRepo.findByFolderEntity_IdFolder(idFolder);
+
+        return documentEntities.stream()
+                .map(DocumentEntity::getFileEntity)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .map(file -> {
+                    FileResponse response = fileMapper.toResponse(file);
+                    try {
+                        if (response.getPartFile() != null && !response.getPartFile().isBlank())
+                            response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
+                        if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
+                            response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Không thể tạo URL cho file: " + file.getFileName(), e);
+                    }
+                    return response;
+                })
+                .toList();
     }
 }

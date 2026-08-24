@@ -17,6 +17,7 @@ public class BookResponse {
     String bookCode;
     String title;
     String author;
+    String description;
     String publisher;
     Integer publishYear;
     String shelfLocation;
