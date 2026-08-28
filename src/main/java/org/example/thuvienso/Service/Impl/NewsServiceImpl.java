@@ -13,6 +13,7 @@ import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.NewsContentImageProcessor;
+import org.example.thuvienso.Helper.NewsHtmlThumbnailGenerator;
 import org.example.thuvienso.Helper.NewsThumbnailExtractor;
 import org.example.thuvienso.Mapper.CategoryMapper;
 import org.example.thuvienso.Mapper.DocumentMapper;
@@ -41,16 +42,26 @@ public class NewsServiceImpl implements NewsService {
     private final CategoryMapper categoryMapper;
     private final NewsThumbnailExtractor newsThumbnailExtractor;
     private final NewsContentImageProcessor newsContentImageProcessor;
+    private final NewsHtmlThumbnailGenerator newsHtmlThumbnailGenerator;
+
     GetUrl getUrl;
 
     @Override
     @Transactional
     public NewsResponse create(NewsRequest request) {
+        String thumbnail = request.getContent();
+        if (!StringUtils.hasText(thumbnail)) {
+            // baseUrl null nếu content dùng URL tuyệt đối; nếu dùng /files/raw/ tương đối thì
+            // truyền base-url của server (ví dụ http://192.168.2.46:8080)
+            thumbnail = newsHtmlThumbnailGenerator.generateFromHtml(
+                    request.getContent(), request.getTitle(), null);
+        }
+        log.warn(thumbnail);
         String content = newsContentImageProcessor.uploadEmbeddedImages(request.getContent());
         DocumentEntity news = DocumentEntity.builder()
                 .title(request.getTitle().trim())
                 .content(content)
-                .thumbnail(newsThumbnailExtractor.generate(content))
+                .thumbnail(thumbnail)
                 .typeDocument(TypeDocument.ARTICLE)
                 .status(parseStatus(request.getStatus())).viewCount(0L)
                 .downloadCount(0L)
