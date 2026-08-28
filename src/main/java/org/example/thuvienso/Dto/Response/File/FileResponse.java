@@ -11,6 +11,8 @@ import org.example.thuvienso.Enum.BookFileRole;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Module.DocumentEntity;
 
+import java.time.LocalDateTime;
+
 @SuperBuilder
 @Data
 @NoArgsConstructor
@@ -24,6 +26,11 @@ public class FileResponse {
     String partFile;
 
     TypeFile typeFile;
+
+    Long size;
+
+    LocalDateTime createdAt;
+
     BookFileRole bookFile;
 
     String thumbnail;

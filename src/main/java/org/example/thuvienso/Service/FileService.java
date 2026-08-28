@@ -35,4 +35,10 @@ public interface FileService {
 
     List<FileResponse> getAllFileByFolder(String idFolder);
 
+    FileEntity getById(String idFile);
+
+    List<FileResponse> copyFile(List<String> files, String idFolderParent);
+
+    List<FileResponse> cutFile(List<String> files, String idFolderParent);
+
 }

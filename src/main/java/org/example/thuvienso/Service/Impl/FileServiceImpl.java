@@ -87,6 +87,7 @@ public class FileServiceImpl implements FileService {
                 .fileName(uploaded.getOriginalFileName())
                 .typeFile(TypeFile.fromMimeType(uploaded.getContentType()))
                 .thumbnail(thumbObject)
+                .size(uploaded.getSize())
                 .createdAt(LocalDateTime.now())
                 .isDeleted(false)
                 .documentEntity(document)
@@ -273,4 +274,124 @@ public class FileServiceImpl implements FileService {
                 })
                 .toList();
     }
+
+    @Override
+    public FileEntity getById(String idFile) {
+        return fileRepo.findById(idFile)
+                .orElseThrow(()->new AppException(ErrorCode.FILE_NOT_FOUND));
+    }
+
+    @Override
+    @Transactional
+    public List<FileResponse> copyFile(List<String> files, String idFolderParent) {
+        // 1. Tìm document "chứa file" trong folder đích; chưa có thì tạo mới
+        String idDocument = documentRepo
+                .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolderParent, TypeDocument.DOCUMENT)
+                .map(DocumentEntity::getIdDocument)
+                .orElseGet(() -> {
+                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    return documentService.create(DocumentRequest.builder()
+                            .status(StatusDocument.Approve.name())
+                            .typeDocument(TypeDocument.DOCUMENT.name())
+                            .thumbnail("")
+                            .categoryEntity(category.getIdCategory())
+                            .folderEntity(idFolderParent)
+                            .title("Document chứa file trong Folder")
+                            .build()).getIdDocument();
+                });
+
+        // Lấy document đích 1 lần, dùng lại cho mọi file
+        DocumentEntity targetDocument = documentService.getById(idDocument);
+
+
+        // 2. Sao chép từng file (chỉ tham chiếu lại partFile/thumbnail, không copy bytes)
+        List<FileResponse> responses = new ArrayList<>();
+        for (String fileId : files) {
+            FileEntity source = fileRepo.findById(fileId)
+                    .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+
+
+                if (Boolean.TRUE.equals(source.getIsDeleted())) continue; // bỏ file đã xóa mềm
+
+            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile())){
+                throw new AppException(ErrorCode.FILE_IS_EXIST);
+            }
+
+            FileEntity newFile = FileEntity.builder()
+                    .fileName(source.getFileName())
+                    .partFile(source.getPartFile())
+                    .typeFile(source.getTypeFile())
+                    .thumbnail(source.getThumbnail())
+                    .documentEntity(targetDocument)
+                    .createdAt(LocalDateTime.now())
+                    .isDeleted(false)
+                    .build();
+
+            FileResponse response = fileMapper.toResponse(fileRepo.save(newFile));
+            response.setBookFile(resolveBookRole(newFile));
+            try {
+                if (response.getPartFile() != null && !response.getPartFile().isBlank())
+                    response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
+                if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
+                    response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
+            } catch (Exception e) {
+                throw new RuntimeException("Không thể tạo URL cho file: " + newFile.getFileName(), e);
+            }
+            responses.add(response);
+        }
+        return responses;
+    }
+    @Override
+    @Transactional
+    public List<FileResponse> cutFile(List<String> files, String idFolderParent) {
+        // 1. Tìm document "chứa file" trong folder đích; chưa có thì tạo mới
+        String idDocument = documentRepo
+                .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolderParent, TypeDocument.DOCUMENT)
+                .map(DocumentEntity::getIdDocument)
+                .orElseGet(() -> {
+                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    return documentService.create(DocumentRequest.builder()
+                            .status(StatusDocument.Approve.name())
+                            .typeDocument(TypeDocument.DOCUMENT.name())
+                            .thumbnail("")
+                            .categoryEntity(category.getIdCategory())
+                            .folderEntity(idFolderParent)
+                            .title("Document chứa file trong Folder")
+                            .build()).getIdDocument();
+                });
+
+        // Lấy document đích 1 lần, dùng lại cho mọi file
+        DocumentEntity targetDocument = documentService.getById(idDocument);
+
+        // 2. Chuyển từng file (chỉ tham chiếu lại partFile/thumbnail, không cut bytes)
+        List<FileResponse> responses = new ArrayList<>();
+        for (String fileId : files) {
+            FileEntity source = fileRepo.findById(fileId)
+                    .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+
+            if (Boolean.TRUE.equals(source.getIsDeleted())) continue; // bỏ file đã xóa mềm
+            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile())){
+                throw new AppException(ErrorCode.FILE_IS_EXIST);
+            }
+
+           source.setDocumentEntity(targetDocument);
+
+            FileResponse response = fileMapper.toResponse(fileRepo.save(source));
+            response.setBookFile(resolveBookRole(source));
+            try {
+                if (response.getPartFile() != null && !response.getPartFile().isBlank())
+                    response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
+                if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
+                    response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
+            } catch (Exception e) {
+                throw new RuntimeException("Không thể tạo URL cho file: " + source.getFileName(), e);
+            }
+            responses.add(response);
+        }
+        return responses;
+    }
 }
+
+

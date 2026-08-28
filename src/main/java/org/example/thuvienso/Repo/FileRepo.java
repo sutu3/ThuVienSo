@@ -13,6 +13,7 @@ public interface FileRepo extends JpaRepository<FileEntity, String> {
     Optional<FileEntity> findByFileName(String fileName);
 
     List<FileEntity> findByDocumentEntity_IdDocument(String idDocument);
+
     List<FileEntity> findAllByDocumentEntity_IdDocument(String idDocument);
 
     boolean existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(String idDocument, String fileName, TypeFile typeFile);

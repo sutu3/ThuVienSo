@@ -25,5 +25,6 @@ public class BookResponse {
     Integer availableCopies;
     CategoryResponse categoryEntity;
     String thumbnail;
+    String qrCode;
     DocumentResponseNoList document;
 }

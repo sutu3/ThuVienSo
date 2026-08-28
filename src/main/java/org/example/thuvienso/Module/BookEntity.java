@@ -26,7 +26,7 @@ public class BookEntity extends BaseEntity {
     @NotNull(message = "INVALID_KEY")
     String title;
 
-    @Column(name = "description", columnDefinition = "VARCHAR(256) COMMENT 'Mô tả sách'")
+    @Column(name = "description", columnDefinition = "LONGTEXT COMMENT 'Mô tả sách'")
     String description;
 
     @Column(name = "author", columnDefinition = "VARCHAR(256) COMMENT 'Tác giả'")
@@ -49,6 +49,7 @@ public class BookEntity extends BaseEntity {
 
     @Column(name = "thumbnail", columnDefinition = "VARCHAR(256) COMMENT 'Ảnh bìa sách'")
     String thumbnail;
+
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "idCategory")

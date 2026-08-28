@@ -15,6 +15,7 @@ import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.BookForm;
 import org.example.thuvienso.Helper.GetUrl;
+import org.example.thuvienso.Helper.QrCodeGenerator;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.CategoryEntity;
@@ -46,6 +47,7 @@ public class BookServiceImpl implements BookService {
     DocumentService documentService;
     FileService fileService;
     GetUrl getUrl;
+    QrCodeGenerator qrCodeGenerator;
 
     @Override
     public BookResponse createBook(BookRequest request,MultipartFile file,MultipartFile thumbnailBook) throws Exception {
@@ -81,7 +83,11 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponse getByIdResponse(String id) {
-        return bookMapper.toResponse(getById(id));
+        BookResponse res = bookMapper.toResponse(getById(id));
+        if (res.getThumbnail() != null && !res.getThumbnail().isBlank())
+            res.setThumbnail(getUrl.getFileUrl(res.getThumbnail()));
+        res.setQrCode(getUrl.getFileUrl(qrCodeGenerator.generate(res.getIdBook())));
+        return res;
     }
 
     @Override
@@ -106,6 +112,8 @@ public class BookServiceImpl implements BookService {
                     try {
                         if (res.getThumbnail() != null && !res.getThumbnail().isBlank())
                             res.setThumbnail(getUrl.getFileUrl(res.getThumbnail()));
+                        String qrObject = qrCodeGenerator.generate(res.getIdBook());
+                        res.setQrCode(getUrl.getFileUrl(qrObject));
                     } catch (Exception e) {
                         log.warn("Cannot build thumbnail url", e);
                     }

@@ -1,11 +1,16 @@
 package org.example.thuvienso.Controller;
 
 import io.minio.errors.*;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.thuvienso.Dto.ApiResponse;
+import org.example.thuvienso.Dto.Request.CopyFileRequest;
+import org.example.thuvienso.Dto.Request.CopyFolderRequest;
+import org.example.thuvienso.Dto.Request.CutFolderRequest;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
+import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Service.FileService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -142,6 +147,30 @@ public class FileController {
                 .code(0).success(true)
                 .message("Lấy danh sách file thành công")
                 .Result(fileService.getAllFileByFolder(idFolder))
+                .build();
+    }
+    @PostMapping("/copy/{idFolderParent}")
+    public ApiResponse<List<FileResponse>> copyFile(
+            @RequestBody CopyFileRequest files,
+            @PathVariable("idFolderParent") String idFolderParent
+    ) {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0)
+                .success(true)
+                .message("Sao chép file thành công")
+                .Result(fileService.copyFile(files.getFiles(), idFolderParent))
+                .build();
+    }
+    @PostMapping("/cut/{idFolderParent}")
+    public ApiResponse<List<FileResponse>> moveFile(
+            @RequestBody CutFolderRequest files,
+            @PathVariable("idFolderParent") String idFolderParent
+    ) {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0)
+                .success(true)
+                .message("Sao chép file thành công")
+                .Result(fileService.cutFile(files.getFiles(), idFolderParent))
                 .build();
     }
 
