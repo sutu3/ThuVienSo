@@ -15,9 +15,10 @@ public class BuildPath {
             DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     public String buildObjectPath(MultipartFile file) {
+        return buildObjectPath(file.getOriginalFilename(), file.getContentType());
+    }
 
-        String contentType = file.getContentType();
-        String original = file.getOriginalFilename();
+    public String buildObjectPath(String original, String contentType) {
 
         // 1. Tách extension (đối chiếu để phân loại chính xác hơn contentType)
         String extension = extractExtension(original);

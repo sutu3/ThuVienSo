@@ -12,8 +12,6 @@ import org.example.thuvienso.Service.MinioService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,13 +24,18 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public FileUploadResponse upload(MultipartFile file) throws Exception {
-        String objectName = buildPath.buildObjectPath(file);
-        localStorage.store(file.getBytes(), objectName);   // content trước, objectName sau
+        return upload(file.getBytes(), file.getOriginalFilename(), file.getContentType());
+    }
+
+    @Override
+    public FileUploadResponse upload(byte[] content, String originalFileName, String contentType) throws Exception {
+        String objectName = buildPath.buildObjectPath(originalFileName, contentType);
+        localStorage.store(content, objectName);
         return FileUploadResponse.builder()
                 .objectName(objectName)
-                .originalFileName(file.getOriginalFilename())
-                .contentType(file.getContentType())
-                .size(file.getSize())
+                .originalFileName(originalFileName)
+                .contentType(contentType)
+                .size((long) content.length)
                 .previewUrl(getUrl.getFileUrl(objectName))
                 .build();
     }

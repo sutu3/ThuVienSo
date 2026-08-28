@@ -65,6 +65,7 @@ public class AuthenticationFilter {
                         request
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/ws", "/ws/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/news", "/news/*").permitAll()
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                                 .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
                                 .requestMatchers(HttpMethod.PUT, PUBLIC_ENDPOINTS).permitAll()

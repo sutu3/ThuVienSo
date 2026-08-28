@@ -8,4 +8,6 @@ public interface MinioService {
     FileUploadResponse upload(
             MultipartFile file
     ) throws Exception;
+
+    FileUploadResponse upload(byte[] content, String originalFileName, String contentType) throws Exception;
 }

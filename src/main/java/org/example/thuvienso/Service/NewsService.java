@@ -8,7 +8,13 @@ public interface NewsService {
     NewsResponse create(NewsRequest request);
     NewsResponse update(String id, NewsRequest request);
     NewsResponse getPublishedBySlug(String slug);
-    Page<NewsResponse> getPublished(String keyword, String category, Boolean featured, int page, int size);
+     Page<NewsResponse> getPublished(
+            String keyword,
+            String categoryId,
+            Boolean ignoredFeatured,
+            int page,
+            int size
+    );
     Page<NewsResponse> getForAdmin(String keyword, String status, int page, int size);
     void delete(String id);
 }
