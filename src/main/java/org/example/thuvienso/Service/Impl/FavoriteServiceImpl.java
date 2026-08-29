@@ -16,6 +16,7 @@ import org.example.thuvienso.Repo.FavoriteRepo;
 import org.example.thuvienso.Service.BookService;
 import org.example.thuvienso.Service.FavoriteService;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,9 +75,13 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     private AccountEntity getCurrentAccount() {
-        String userName = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        return accountRepo.findByUserName(userName)
+        JwtAuthenticationToken authentication =
+                (JwtAuthenticationToken) SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+
+        return accountRepo.findById(authentication.getToken().getSubject())
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
 }

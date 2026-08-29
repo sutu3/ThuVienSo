@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.thuvienso.Dto.Request.DocumentRequest;
 import org.example.thuvienso.Dto.Request.NewsRequest;
-import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.News.NewsResponse;
 import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Enum.TypeDocument;
@@ -16,10 +16,11 @@ import org.example.thuvienso.Helper.NewsContentImageProcessor;
 import org.example.thuvienso.Helper.NewsHtmlThumbnailGenerator;
 import org.example.thuvienso.Helper.NewsThumbnailExtractor;
 import org.example.thuvienso.Mapper.CategoryMapper;
-import org.example.thuvienso.Mapper.DocumentMapper;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.CategoryService;
+import org.example.thuvienso.Service.DocumentService;
+import org.example.thuvienso.Service.MinioService;
 import org.example.thuvienso.Service.NewsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,9 +29,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Objects;
+import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -43,27 +46,32 @@ public class NewsServiceImpl implements NewsService {
     private final NewsThumbnailExtractor newsThumbnailExtractor;
     private final NewsContentImageProcessor newsContentImageProcessor;
     private final NewsHtmlThumbnailGenerator newsHtmlThumbnailGenerator;
+    MinioService minioService;
+    DocumentService documentService;
 
     GetUrl getUrl;
 
     @Override
     @Transactional
     public NewsResponse create(NewsRequest request) {
-        String thumbnail = request.getContent();
-        if (!StringUtils.hasText(thumbnail)) {
-            // baseUrl null nếu content dùng URL tuyệt đối; nếu dùng /files/raw/ tương đối thì
-            // truyền base-url của server (ví dụ http://192.168.2.46:8080)
-            thumbnail = newsHtmlThumbnailGenerator.generateFromHtml(
-                    request.getContent(), request.getTitle(), null);
-        }
-        log.warn(thumbnail);
+        // 1. Upload ảnh nhúng base64 trong content -> thay src bằng URL nội bộ
         String content = newsContentImageProcessor.uploadEmbeddedImages(request.getContent());
+
+        // 2. Sinh thumbnail từ HTML (đã thay src). baseUrl = host server nếu content dùng /files/raw/ tương đối
+//        String thumbnail = newsHtmlThumbnailGenerator.generateFromHtml(
+//                content, request.getTitle(), null);
+//        log.warn("Generated thumbnail: {}", thumbnail);
+        StatusDocument status = parseStatus(request.getStatus());
+
         DocumentEntity news = DocumentEntity.builder()
                 .title(request.getTitle().trim())
                 .content(content)
-                .thumbnail(thumbnail)
+                .summary(resolveSummary(request.getSummary(), content))
+                .slug(resolveSlug(request.getSlug(), request.getTitle(), null))
+                .publishedAt(resolvePublishedAt(status, request.getPublishedAt(), null))
+                .thumbnail(request.getThumbnail())
                 .typeDocument(TypeDocument.ARTICLE)
-                .status(parseStatus(request.getStatus())).viewCount(0L)
+                .status(status).viewCount(0L)
                 .downloadCount(0L)
                 .categoryEntity(categoryService.getById(request.getCategoryEntity()))
                 .isDeleted(false).build();
@@ -75,11 +83,15 @@ public class NewsServiceImpl implements NewsService {
     public NewsResponse update(String id, NewsRequest request) {
         DocumentEntity news = getArticle(id);
         String content = newsContentImageProcessor.uploadEmbeddedImages(request.getContent());
+        StatusDocument status = StringUtils.hasText(request.getStatus()) ? parseStatus(request.getStatus()) : news.getStatus();
         news.setTitle(request.getTitle().trim());
         news.setContent(content);
+        news.setSummary(resolveSummary(request.getSummary(), content));
+        news.setSlug(resolveSlug(request.getSlug(), request.getTitle(), id));
+        news.setPublishedAt(resolvePublishedAt(status, request.getPublishedAt(), news.getPublishedAt()));
         String oldThumbnail = news.getThumbnail();
-        news.setThumbnail(newsThumbnailExtractor.generate(content));
-        if (StringUtils.hasText(request.getStatus())) news.setStatus(parseStatus(request.getStatus()));
+        news.setThumbnail(newsHtmlThumbnailGenerator.generateFromHtml(content, request.getTitle(), null));
+        news.setStatus(status);
         news.setCategoryEntity(categoryService.getById(request.getCategoryEntity()));
         NewsResponse response = toResponse(documentRepo.save(news));
         deleteOldGeneratedThumbnail(oldThumbnail, news.getThumbnail());
@@ -87,10 +99,17 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    public NewsResponse getById(String idNew) {
+        DocumentEntity document=documentService.getById(idNew);
+        return toResponse(document);
+    }
+
+    @Override
     @Transactional
-    public NewsResponse getPublishedBySlug(String id) {
-        DocumentEntity news = getArticle(id);
-        if (news.getStatus() != StatusDocument.Approve) throw new AppException(ErrorCode.NEWS_NOT_FOUND);
+    public NewsResponse getPublishedBySlug(String slug) {
+        DocumentEntity news = documentRepo.findBySlugAndTypeDocumentAndIsDeletedFalse(slug, TypeDocument.ARTICLE)
+                .orElseThrow(() -> new AppException(ErrorCode.NEWS_NOT_FOUND));
+        if (news.getStatus() != StatusDocument.Approve || news.getPublishedAt() == null || news.getPublishedAt().isAfter(LocalDateTime.now())) throw new AppException(ErrorCode.NEWS_NOT_FOUND);
         news.setViewCount((news.getViewCount() == null ? 0L : news.getViewCount()) + 1);
         return toResponse(news);
     }
@@ -107,7 +126,7 @@ public class NewsServiceImpl implements NewsService {
         Specification<DocumentEntity> spec = baseSpec()
                 .and((root, query, cb) ->
                         cb.equal(root.get("status"), StatusDocument.Approve)
-                );
+                ).and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("publishedAt"), LocalDateTime.now()));
 
         if (StringUtils.hasText(keyword)) {
             spec = spec.and(keywordSpec(keyword));
@@ -143,6 +162,19 @@ public class NewsServiceImpl implements NewsService {
         documentRepo.save(news);
     }
 
+    @Override
+    public String uploadImage(MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new AppException(ErrorCode.FILE_NOT_FOUND);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new AppException(ErrorCode.FILE_INVALID_TYPE);
+        }
+        // upload đã có sẵn: lưu file + trả previewUrl dạng http://<host>/files/raw/...
+        return minioService.upload(file).getPreviewUrl();
+    }
+
     private DocumentEntity getArticle(String id) {
         return documentRepo.findById(id)
                 .filter(d -> !d.getIsDeleted() && d.getTypeDocument() == TypeDocument.ARTICLE)
@@ -159,7 +191,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     private PageRequest pageable(int page, int size) {
-        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Order.desc("createdAt")));
+        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Order.desc("publishedAt"), Sort.Order.desc("createdAt")));
     }
 
     private StatusDocument parseStatus(String status) {
@@ -174,7 +206,33 @@ public class NewsServiceImpl implements NewsService {
         try { newsThumbnailExtractor.delete(oldThumbnail); } catch (Exception e) { log.warn("Không thể xóa thumbnail cũ: {}", oldThumbnail, e); }
     }
 
+    private String resolveSlug(String requestedSlug, String title, String currentId) {
+        String source = StringUtils.hasText(requestedSlug) ? requestedSlug : title;
+        String slug = Normalizer.normalize(source, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('đ', 'd').replace('Đ', 'd')
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
+        if (!StringUtils.hasText(slug)) throw new AppException(ErrorCode.INVALID_KEY);
+        boolean exists = currentId == null ? documentRepo.existsBySlug(slug) : documentRepo.existsBySlugAndIdDocumentNot(slug, currentId);
+        if (exists) throw new AppException(ErrorCode.NEWS_SLUG_EXISTS);
+        return slug;
+    }
+
+    private String resolveSummary(String requestedSummary, String content) {
+        if (StringUtils.hasText(requestedSummary)) return requestedSummary.trim();
+        String text = org.jsoup.Jsoup.parse(content).text().trim();
+        return text.length() <= 250 ? text : text.substring(0, 247) + "...";
+    }
+
+    private LocalDateTime resolvePublishedAt(StatusDocument status, LocalDateTime requested, LocalDateTime current) {
+        if (requested != null) return requested;
+        if (status == StatusDocument.Approve) return current != null ? current : LocalDateTime.now();
+        return current;
+    }
+
     private NewsResponse toResponse(DocumentEntity d) {
-        return NewsResponse.builder().idNews(d.getIdDocument()).title(d.getTitle()).content(d.getContent()).thumbnail(getUrl.getFileUrl(d.getThumbnail())).status(d.getStatus()).typeDocument(d.getTypeDocument()).categoryEntity(categoryMapper.toResponse(d.getCategoryEntity())).viewCount(d.getViewCount()).build();
+        return NewsResponse.builder().idNews(d.getIdDocument()).title(d.getTitle()).content(d.getContent()).summary(d.getSummary()).slug(d.getSlug()).publishedAt(d.getPublishedAt()).thumbnail(getUrl.getFileUrl(d.getThumbnail())).status(d.getStatus()).typeDocument(d.getTypeDocument()).categoryEntity(categoryMapper.toResponse(d.getCategoryEntity())).viewCount(d.getViewCount()).build();
     }
 }

@@ -8,6 +8,9 @@ import org.example.thuvienso.Dto.Response.News.NewsResponse;
 import org.example.thuvienso.Service.NewsService;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/news")
@@ -20,9 +23,9 @@ public class NewsController {
         return ok("Lấy danh sách tin tức thành công", newsService.getPublished(keyword, categoryId, null, page, size));
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<NewsResponse> detail(@PathVariable String id) {
-        return ok("Lấy bài viết thành công", newsService.getPublishedBySlug(id));
+    @GetMapping("/slug/{slug}")
+    public ApiResponse<NewsResponse> detail(@PathVariable String slug) {
+        return ok("Lấy bài viết thành công", newsService.getPublishedBySlug(slug));
     }
 
     @PostMapping
@@ -33,6 +36,10 @@ public class NewsController {
     @PutMapping("/{id}")
     public ApiResponse<NewsResponse> update(@PathVariable String id, @RequestBody @Valid NewsRequest request) {
         return ok("Cập nhật bài viết thành công", newsService.update(id, request));
+    }
+    @GetMapping("/{id}")
+    public ApiResponse<NewsResponse> getByIdNew(@PathVariable String id) {
+        return ok("Lấy bài viết thành công", newsService.getById(id));
     }
 
     @DeleteMapping("/{id}")
@@ -48,5 +55,11 @@ public class NewsController {
 
     private <T> ApiResponse<T> ok(String message, T result) {
         return ApiResponse.<T>builder().success(true).code(0).message(message).Result(result).build();
+    }
+    @PostMapping(value = "/upload-image", consumes = "multipart/form-data")
+    public ApiResponse<Map<String, String>> uploadImage(
+            @RequestPart("file") MultipartFile file
+    ) throws Exception {
+        return ok("Upload ảnh thành công", Map.of("url", newsService.uploadImage(file)));
     }
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import java.time.LocalDateTime;
 
 @SuperBuilder
 @Data
@@ -16,4 +17,7 @@ public class DocumentForm {
     String content;
 
     String title;
+    String summary;
+    LocalDateTime publishedAt;
+    String slug;
 }

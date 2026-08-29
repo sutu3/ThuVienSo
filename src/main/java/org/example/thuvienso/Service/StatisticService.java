@@ -11,4 +11,14 @@ public interface StatisticService {
     List<CountByKeyResponse> countDocumentByType();  // biểu đồ theo loại tài liệu
 
     List<CountByKeyResponse> topViewedDocuments(int limit); // top xem nhiều
+
+    List<CountByKeyResponse> countDocumentByStatus();
+
+    List<CountByKeyResponse> topCategories(int limit);
+
+    List<CountByKeyResponse> countUsersByRole();
+
+    List<CountByKeyResponse> monthlyTrend(int months);
+
+    List<CountByKeyResponse> weeklyActivity();
 }

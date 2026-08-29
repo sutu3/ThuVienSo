@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Enum.TypeDocument;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -28,6 +29,15 @@ public class DocumentEntity extends BaseEntity{
 
     @Column(name = "title",columnDefinition = "VARCHAR(256) COMMENT 'tiêu đề tài liệu'")
     String title;
+
+    @Column(name = "summary", length = 500, columnDefinition = "VARCHAR(500) COMMENT 'mô tả ngắn tài liệu'")
+    String summary;
+
+    @Column(name = "publishedAt", columnDefinition = "DATETIME COMMENT 'thời gian xuất bản, đăng bài'")
+    LocalDateTime publishedAt;
+
+    @Column(name = "slug", unique = true, length = 280, columnDefinition = "VARCHAR(280) COMMENT 'đường dẫn tài liệu'")
+    String slug;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20) COMMENT 'Trạng thái của tài liệu'", nullable = false)

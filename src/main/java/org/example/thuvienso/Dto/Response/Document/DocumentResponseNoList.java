@@ -11,6 +11,7 @@ import org.example.thuvienso.Dto.Response.File.FileResponseNoList;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponseNoList;
 import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Enum.TypeDocument;
+import java.time.LocalDateTime;
 import org.example.thuvienso.Module.CollectionEntity;
 
 import java.util.List;
@@ -26,6 +27,12 @@ public class DocumentResponseNoList {
     String content;
 
     String title;
+
+    String summary;
+
+    LocalDateTime publishedAt;
+
+    String slug;
 
     StatusDocument status;
 

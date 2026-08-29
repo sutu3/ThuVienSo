@@ -13,6 +13,7 @@ import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Module.*;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @SuperBuilder
 @Data
@@ -23,6 +24,12 @@ public class DocumentRequest {
     String content;
 
     String title;
+
+    String summary;
+
+    LocalDateTime publishedAt;
+
+    String slug;
 
     String status;
 

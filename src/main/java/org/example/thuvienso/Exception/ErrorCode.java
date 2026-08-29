@@ -35,6 +35,7 @@ public enum ErrorCode {
     FILE_IS_EXIST(4002, "Tập tin đã tồn tại", HttpStatus.CONFLICT),
     FILE_IS_TO_BIG(4003, "Tập tin quá lớn để lưu trữ", HttpStatus.BAD_REQUEST),
     FILE_NOT_SUPPORTED(4004, "Tập tin không được hỗ trợ", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+    FILE_INVALID_TYPE(4007,"File upload không phù hợp với bài viết",HttpStatus.UNSUPPORTED_MEDIA_TYPE),
     COLLECTION_NOT_FOUND(4005, "Không tìm thấy bộ sưu tập", HttpStatus.NOT_FOUND),
     COLLECTION_IS_EXIST(4006, "Bộ sưu tập đã tồn tại", HttpStatus.CONFLICT),
     FAVORITE_ALREADY_EXISTS(4101, "Sách đã có trong danh sách yêu thích", HttpStatus.BAD_REQUEST),

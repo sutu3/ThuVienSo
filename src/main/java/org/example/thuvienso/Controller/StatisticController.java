@@ -8,7 +8,10 @@ import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Response.Statistic.CountByKeyResponse;
 import org.example.thuvienso.Dto.Response.Statistic.StatisticResponse;
 import org.example.thuvienso.Service.StatisticService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -47,5 +50,34 @@ public class StatisticController {
                 .message("Thống kê tài liệu xem nhiều nhất thành công")
                 .Result(statisticService.topViewedDocuments(limit))
                 .build();
+    }
+
+    @GetMapping("/documentByStatus")
+    public ApiResponse<List<CountByKeyResponse>> documentByStatus() {
+        return response("Thống kê tài liệu theo trạng thái thành công", statisticService.countDocumentByStatus());
+    }
+
+    @GetMapping("/topCategories")
+    public ApiResponse<List<CountByKeyResponse>> topCategories(@RequestParam(defaultValue = "10") int limit) {
+        return response("Thống kê danh mục nhiều tài liệu thành công", statisticService.topCategories(limit));
+    }
+
+    @GetMapping("/usersByRole")
+    public ApiResponse<List<CountByKeyResponse>> usersByRole() {
+        return response("Thống kê người dùng theo vai trò thành công", statisticService.countUsersByRole());
+    }
+
+    @GetMapping("/monthlyTrend")
+    public ApiResponse<List<CountByKeyResponse>> monthlyTrend(@RequestParam(defaultValue = "12") int months) {
+        return response("Thống kê xu hướng tài liệu theo tháng thành công", statisticService.monthlyTrend(months));
+    }
+
+    @GetMapping("/weeklyActivity")
+    public ApiResponse<List<CountByKeyResponse>> weeklyActivity() {
+        return response("Thống kê hoạt động 7 ngày gần nhất thành công", statisticService.weeklyActivity());
+    }
+
+    private ApiResponse<List<CountByKeyResponse>> response(String message, List<CountByKeyResponse> result) {
+        return ApiResponse.<List<CountByKeyResponse>>builder().code(0).success(true).message(message).Result(result).build();
     }
 }
