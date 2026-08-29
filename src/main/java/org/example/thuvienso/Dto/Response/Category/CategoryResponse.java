@@ -17,5 +17,5 @@ import java.util.List;
 public class CategoryResponse {
     String idCategory;
     String categoryName;
-//    List<CategoryResponse> childCategory;
+    CategoryResponseNoList parentCategory;
 }

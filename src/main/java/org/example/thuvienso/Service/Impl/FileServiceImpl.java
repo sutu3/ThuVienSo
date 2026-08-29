@@ -392,6 +392,10 @@ public class FileServiceImpl implements FileService {
         }
         return responses;
     }
+//    public FileResponse uploadVideo(MultipartFile file,String idCategory){
+//        CategoryEntity categoryVideo=categoryService.getById(idCategory);
+////        DocumentEntity documentVideo=documentService.get
+//    }
 }
 
 

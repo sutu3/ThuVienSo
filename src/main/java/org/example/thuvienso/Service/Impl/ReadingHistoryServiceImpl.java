@@ -74,6 +74,7 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
                 (JwtAuthenticationToken) SecurityContextHolder
                         .getContext()
                         .getAuthentication();
+        log.warn(authentication.getToken().getSubject());
         return accountRepo.findById(authentication.getToken().getSubject())
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
