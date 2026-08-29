@@ -233,6 +233,17 @@ public class NewsServiceImpl implements NewsService {
     }
 
     private NewsResponse toResponse(DocumentEntity d) {
-        return NewsResponse.builder().idNews(d.getIdDocument()).title(d.getTitle()).content(d.getContent()).summary(d.getSummary()).slug(d.getSlug()).publishedAt(d.getPublishedAt()).thumbnail(getUrl.getFileUrl(d.getThumbnail())).status(d.getStatus()).typeDocument(d.getTypeDocument()).categoryEntity(categoryMapper.toResponse(d.getCategoryEntity())).viewCount(d.getViewCount()).build();
+        return NewsResponse.builder()
+                .idNews(d.getIdDocument())
+                .title(d.getTitle())
+                .content(d.getContent())
+                .summary(d.getSummary())
+                .slug(d.getSlug())
+                .publishedAt(d.getPublishedAt())
+                .thumbnail(d.getThumbnail())
+                .status(d.getStatus())
+                .typeDocument(d.getTypeDocument())
+                .categoryEntity(categoryMapper.toResponse(d.getCategoryEntity()))
+                .viewCount(d.getViewCount()).build();
     }
 }

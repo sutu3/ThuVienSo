@@ -53,7 +53,6 @@ public class ApplicationInitConfig {
                                         CategoryRepo categoryRepo) {
         return args -> {
 
-
             // Initial data setup
             if (accountRepo.findByUserName("admin").isEmpty()) {
 
@@ -61,9 +60,25 @@ public class ApplicationInitConfig {
                 CategoryResponse categoryResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Khác")
                         .build());
-                CategoryEntity category=categoryService.getById(categoryResponse.getIdCategory());
+                CategoryResponse FolderResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Folder")
+                        .build());
+                CategoryResponse NewsResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Tin Tức")
+                        .build());
+                CategoryResponse VideoResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Phim")
+                        .build());
+                CategoryResponse BookResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Sách")
+                        .build());
+                CategoryResponse LessonResponse=categoryService.createCategory(CategoryRequest.builder()
+                        .categoryName("Tài liệu")
+                        .build());
+                CategoryEntity category=categoryService.getById(FolderResponse.getIdCategory());
                 category.setIsDisplay(false);
                 categoryRepo.save(category);
+
 
                 FolderResponse folderSư5=folderService.create(FolderRequest.builder()
                         .folderName("Sư đoàn 5")

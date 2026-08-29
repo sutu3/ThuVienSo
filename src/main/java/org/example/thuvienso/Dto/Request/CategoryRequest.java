@@ -15,8 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryRequest {
-
-
     String categoryName;
-
+    String parentCategory;
+    Boolean isDisplay;
 }

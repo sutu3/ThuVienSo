@@ -74,4 +74,18 @@ public class CategoryController {
                 .Result(categoryService.updateCategory(categoryForm, id))
                 .build();
     }
+
+    @GetMapping("/tree")
+    public ApiResponse<List<CategoryResponse>> getTree() {
+        return ApiResponse.<List<CategoryResponse>>builder()
+                .code(0).success(true).message("Lấy cây danh mục thành công")
+                .Result(categoryService.getTree()).build();
+    }
+
+    @GetMapping("/{id}/children")
+    public ApiResponse<List<CategoryResponse>> getChildren(@PathVariable("id") String id) {
+        return ApiResponse.<List<CategoryResponse>>builder()
+                .code(0).success(true).message("Lấy danh mục con thành công")
+                .Result(categoryService.getCategoryChildren(id)).build();
+    }
 }

@@ -21,4 +21,10 @@ public interface CategoryService {
     void DeletedById(String id);
 
     CategoryResponse updateCategory(CategoryForm categoryForm, String id);
+
+    List<CategoryResponse> getCategoriesByDocumentType(String type);
+
+    List<CategoryResponse> getTree();                       // toàn bộ cây từ gốc
+
+    List<CategoryResponse> getCategoryChildren(String parentId);    // con trực tiếp của 1 node
 }

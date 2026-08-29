@@ -16,6 +16,7 @@ public interface CategoryMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "parentCategory",ignore = true)
     @Mapping(target = "documentEntity",ignore = true)
     CategoryEntity toEntity(CategoryRequest request);
 

@@ -229,7 +229,7 @@ public class FileServiceImpl implements FileService {
                 .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolder, TypeDocument.DOCUMENT)
                 .map(DocumentEntity::getIdDocument)
                 .orElseGet(() -> {
-                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                    CategoryEntity category = categoryRepo.findByCategoryName("Folder")
                             .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
                     return documentService.create(DocumentRequest.builder()
                             .status(StatusDocument.Approve.name())
@@ -289,7 +289,7 @@ public class FileServiceImpl implements FileService {
                 .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolderParent, TypeDocument.DOCUMENT)
                 .map(DocumentEntity::getIdDocument)
                 .orElseGet(() -> {
-                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                    CategoryEntity category = categoryRepo.findByCategoryName("Folder")
                             .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
                     return documentService.create(DocumentRequest.builder()
                             .status(StatusDocument.Approve.name())
@@ -350,7 +350,7 @@ public class FileServiceImpl implements FileService {
                 .findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(idFolderParent, TypeDocument.DOCUMENT)
                 .map(DocumentEntity::getIdDocument)
                 .orElseGet(() -> {
-                    CategoryEntity category = categoryRepo.findByCategoryName("Khác")
+                    CategoryEntity category = categoryRepo.findByCategoryName("Folder")
                             .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
                     return documentService.create(DocumentRequest.builder()
                             .status(StatusDocument.Approve.name())

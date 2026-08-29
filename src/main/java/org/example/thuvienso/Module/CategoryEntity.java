@@ -22,6 +22,14 @@ public class CategoryEntity extends BaseEntity{
 
     @Column(name = "categoryName",columnDefinition = "VARCHAR(256) COMMENT 'tên thể loại'")
     String categoryName;
+    @ManyToOne(fetch = FetchType.EAGER)
+
+    @JoinColumn(name = "parentCategoryId")
+    CategoryEntity parentCategory;
+
+    @OneToMany(mappedBy = "parentCategory")
+    List<CategoryEntity> childCategory;
+
     @OneToMany(mappedBy="categoryEntity")
     List<DocumentEntity> documentEntity;
     @Column(

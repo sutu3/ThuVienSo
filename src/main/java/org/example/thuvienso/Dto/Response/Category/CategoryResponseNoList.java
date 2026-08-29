@@ -14,8 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CategoryResponse {
+public class CategoryResponseNoList {
     String idCategory;
     String categoryName;
-//    List<CategoryResponse> childCategory;
+
 }
