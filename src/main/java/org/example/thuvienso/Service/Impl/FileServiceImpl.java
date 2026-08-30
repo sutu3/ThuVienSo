@@ -19,6 +19,7 @@ import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Helper.FileResponseHelper;
 import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
@@ -70,6 +71,7 @@ public class FileServiceImpl implements FileService {
     LocalStorage localStorage;
     GetUrl getUrl;
     CategoryService categoryService;
+    FileResponseHelper fileServiceHelper;
 
     @Override
     @Transactional
@@ -262,14 +264,7 @@ public class FileServiceImpl implements FileService {
                 .flatMap(List::stream)
                 .map(file -> {
                     FileResponse response = fileMapper.toResponse(file);
-                    try {
-                        if (response.getPartFile() != null && !response.getPartFile().isBlank())
-                            response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
-                        if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
-                            response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
-                    } catch (Exception e) {
-                        throw new RuntimeException("Không thể tạo URL cho file: " + file.getFileName(), e);
-                    }
+                    fileServiceHelper.buildUrl(response);
                     return response;
                 })
                 .toList();
@@ -330,14 +325,7 @@ public class FileServiceImpl implements FileService {
 
             FileResponse response = fileMapper.toResponse(fileRepo.save(newFile));
             response.setBookFile(resolveBookRole(newFile));
-            try {
-                if (response.getPartFile() != null && !response.getPartFile().isBlank())
-                    response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
-                if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
-                    response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
-            } catch (Exception e) {
-                throw new RuntimeException("Không thể tạo URL cho file: " + newFile.getFileName(), e);
-            }
+            fileServiceHelper.buildUrl(response);
             responses.add(response);
         }
         return responses;
@@ -406,7 +394,7 @@ public class FileServiceImpl implements FileService {
 
             // 1. Suy typeFile -> typeDocument (mp4 -> VIDEO, mp3 -> AUDIO, ...)
             TypeFile typeFile = TypeFile.fromMimeType(file.getContentType());
-            TypeDocument typeDocument = mapFileToDocumentType(typeFile);
+            TypeDocument typeDocument = fileServiceHelper.mapFileToDocumentType(typeFile);
 
             // 2. Trong category này đã có document đúng loại chưa? Có -> tái dùng, chưa -> tạo mới
             String idDocument = documentRepo
@@ -450,16 +438,7 @@ public class FileServiceImpl implements FileService {
                 .toList();
     }
 
-    // Suy loại tài liệu từ loại file
-    private TypeDocument mapFileToDocumentType(TypeFile typeFile) {
-        return switch (typeFile) {
-            case MP4        -> TypeDocument.VIDEO;
-            case MP3        -> TypeDocument.AUDIO;
-            case PDF        -> TypeDocument.PDF;
-            case PNG, JPG   -> TypeDocument.IMAGE;
-            default         -> TypeDocument.DOCUMENT;   // DOCX, ZIP...
-        };
-    }
+
 }
 
 

@@ -50,6 +50,11 @@ mini:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: thuvienso
+backup:
+  dir: D:/Code/ThuVienSo/backup      # thư mục lưu file .sql
+  mysqldump-path: "C:/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe"
+  keep: 0
+
 
 jwt:
   valid-duration: 3600

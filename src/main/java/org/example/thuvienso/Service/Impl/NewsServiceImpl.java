@@ -20,6 +20,7 @@ import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.DocumentService;
+import org.example.thuvienso.Service.Impl.Specification.NewSpecification;
 import org.example.thuvienso.Service.MinioService;
 import org.example.thuvienso.Service.NewsService;
 import org.springframework.data.domain.Page;
@@ -40,13 +41,14 @@ import java.util.Locale;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class NewsServiceImpl implements NewsService {
-    private final DocumentRepo documentRepo;
-    private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
-    private final NewsThumbnailExtractor newsThumbnailExtractor;
-    private final NewsContentImageProcessor newsContentImageProcessor;
-    private final NewsHtmlThumbnailGenerator newsHtmlThumbnailGenerator;
+    DocumentRepo documentRepo;
+    CategoryService categoryService;
+    CategoryMapper categoryMapper;
+    NewsThumbnailExtractor newsThumbnailExtractor;
+    NewsContentImageProcessor newsContentImageProcessor;
+    NewsHtmlThumbnailGenerator newsHtmlThumbnailGenerator;
     MinioService minioService;
+    NewSpecification newSpecification;
     DocumentService documentService;
 
     GetUrl getUrl;
@@ -58,9 +60,6 @@ public class NewsServiceImpl implements NewsService {
         String content = newsContentImageProcessor.uploadEmbeddedImages(request.getContent());
 
         // 2. Sinh thumbnail từ HTML (đã thay src). baseUrl = host server nếu content dùng /files/raw/ tương đối
-//        String thumbnail = newsHtmlThumbnailGenerator.generateFromHtml(
-//                content, request.getTitle(), null);
-//        log.warn("Generated thumbnail: {}", thumbnail);
         StatusDocument status = parseStatus(request.getStatus());
 
         DocumentEntity news = DocumentEntity.builder()
@@ -123,13 +122,13 @@ public class NewsServiceImpl implements NewsService {
             int page,
             int size
     ) {
-        Specification<DocumentEntity> spec = baseSpec()
+        Specification<DocumentEntity> spec = newSpecification.baseSpec()
                 .and((root, query, cb) ->
                         cb.equal(root.get("status"), StatusDocument.Approve)
                 ).and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("publishedAt"), LocalDateTime.now()));
 
         if (StringUtils.hasText(keyword)) {
-            spec = spec.and(keywordSpec(keyword));
+            spec = spec.and(newSpecification.keywordSpec(keyword));
         }
 
         if (StringUtils.hasText(categoryId)) {
@@ -141,17 +140,17 @@ public class NewsServiceImpl implements NewsService {
             );
         }
 
-        return documentRepo.findAll(spec, pageable(page, size)).map(this::toResponse);
+        return documentRepo.findAll(spec, newSpecification.pageable(page, size)).map(this::toResponse);
     }
     @Override
     @Transactional(readOnly = true)
     public Page<NewsResponse> getForAdmin(String keyword, String status, int page, int size) {
-        Specification<DocumentEntity> spec = baseSpec();
-        if (StringUtils.hasText(keyword)) spec = spec.and(keywordSpec(keyword));
+        Specification<DocumentEntity> spec = newSpecification.baseSpec();
+        if (StringUtils.hasText(keyword)) spec = spec.and(newSpecification.keywordSpec(keyword));
         if (StringUtils.hasText(status))
             spec = spec.and((root, query, cb)
                     -> cb.equal(root.get("status"), parseStatus(status)));
-        return documentRepo.findAll(spec, pageable(page, size)).map(this::toResponse);
+        return documentRepo.findAll(spec, newSpecification.pageable(page, size)).map(this::toResponse);
     }
 
     @Override
@@ -181,18 +180,7 @@ public class NewsServiceImpl implements NewsService {
                 .orElseThrow(() -> new AppException(ErrorCode.NEWS_NOT_FOUND));
     }
 
-    private Specification<DocumentEntity> baseSpec() {
-        return (root, query, cb) -> cb.and(cb.isFalse(root.get("isDeleted")), cb.equal(root.get("typeDocument"), TypeDocument.ARTICLE));
-    }
 
-    private Specification<DocumentEntity> keywordSpec(String keyword) {
-        String value = "%" + keyword.trim().toLowerCase() + "%";
-        return (root, query, cb) -> cb.or(cb.like(cb.lower(root.get("title")), value), cb.like(cb.lower(root.get("content")), value));
-    }
-
-    private PageRequest pageable(int page, int size) {
-        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Order.desc("publishedAt"), Sort.Order.desc("createdAt")));
-    }
 
     private StatusDocument parseStatus(String status) {
         if (!StringUtils.hasText(status)) return StatusDocument.Pending;

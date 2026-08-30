@@ -163,7 +163,4 @@ public class DocumentServiceImpl implements DocumentService {
                 .stream().filter(document -> document.getStatus().equals(StatusDocument.Approve))
                 .map(documentMapper::toResponse).collect(Collectors.toList());
     }
-//    public List<DocumentEntity> getAllbyIDCategory(String idCategory){
-//
-//    }
 }
