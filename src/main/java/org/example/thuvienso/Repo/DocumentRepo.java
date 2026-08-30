@@ -62,4 +62,10 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, Jpa
 
     Optional<DocumentEntity> findFirstByFolderEntity_IdFolderAndTypeDocumentAndIsDeletedFalse(
             String idFolder, TypeDocument typeDocument);
+
+    Optional<DocumentEntity> findFirstByCategoryEntity_IdCategoryAndTypeDocumentAndIsDeletedFalse(
+            String idCategory, TypeDocument typeDocument);
+
+    List<DocumentEntity> findByCategoryEntity_IdCategoryAndIsDeletedFalse(String idCategory);
+
 }

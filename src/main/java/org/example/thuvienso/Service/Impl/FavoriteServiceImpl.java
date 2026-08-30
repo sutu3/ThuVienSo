@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.AccountEntity;
 import org.example.thuvienso.Module.BookEntity;
@@ -34,6 +35,8 @@ public class FavoriteServiceImpl implements FavoriteService {
     AccountRepo accountRepo;
     BookService bookService;
     BookMapper bookMapper;
+    GetUrl getUrl;
+
 
     @Override
     @Transactional
@@ -70,7 +73,11 @@ public class FavoriteServiceImpl implements FavoriteService {
         return favoriteRepo
                 .findByAccount_IdAccountOrderByCreatedAtDesc(account.getIdAccount())
                 .stream()
-                .map(f -> bookMapper.toResponse(f.getBook()))
+                .map(f -> {
+                    BookResponse bookResponse=bookMapper.toResponse(f.getBook());
+                    bookResponse.setThumbnail(getUrl.getFileUrl(bookResponse.getThumbnail()));
+                    return bookResponse;
+                })
                 .collect(Collectors.toList());
     }
 

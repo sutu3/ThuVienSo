@@ -41,4 +41,8 @@ public interface FileService {
 
     List<FileResponse> cutFile(List<String> files, String idFolderParent);
 
+    List<FileResponse> uploadFilesToCategory(MultipartFile[] files, String idCategory) throws Exception;
+
+    List<FileResponse> getAllFileByCategory(String idCategory);
+
 }

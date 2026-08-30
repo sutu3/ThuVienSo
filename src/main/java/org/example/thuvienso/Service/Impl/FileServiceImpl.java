@@ -392,10 +392,74 @@ public class FileServiceImpl implements FileService {
         }
         return responses;
     }
-//    public FileResponse uploadVideo(MultipartFile file,String idCategory){
-//        CategoryEntity categoryVideo=categoryService.getById(idCategory);
-////        DocumentEntity documentVideo=documentService.get
-//    }
+    @Override
+    @Transactional
+    public List<FileResponse> uploadFilesToCategory(MultipartFile[] files, String idCategory) throws Exception {
+        if (files == null || files.length == 0) throw new AppException(ErrorCode.FILE_NOT_FOUND);
+
+        // xác nhận category tồn tại (ném lỗi rõ ràng nếu id sai)
+        CategoryEntity category = categoryService.getById(idCategory);
+
+        List<FileResponse> responses = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) continue;
+
+            // 1. Suy typeFile -> typeDocument (mp4 -> VIDEO, mp3 -> AUDIO, ...)
+            TypeFile typeFile = TypeFile.fromMimeType(file.getContentType());
+            TypeDocument typeDocument = mapFileToDocumentType(typeFile);
+
+            // 2. Trong category này đã có document đúng loại chưa? Có -> tái dùng, chưa -> tạo mới
+            String idDocument = documentRepo
+                    .findFirstByCategoryEntity_IdCategoryAndTypeDocumentAndIsDeletedFalse(idCategory, typeDocument)
+                    .map(DocumentEntity::getIdDocument)
+                    .orElseGet(() -> documentService.create(DocumentRequest.builder()
+                            .status(StatusDocument.Approve.name())
+                            .typeDocument(typeDocument.name())
+                            .thumbnail("")
+                            .categoryEntity(category.getIdCategory())
+                            .title("Tài liệu " + typeDocument.name() + " - " + category.getCategoryName())
+                            .build()).getIdDocument());
+
+            // 3. Upload file vào document đó (tự lo thumbnail + kiểm tra trùng)
+            responses.add(uploadFile(file, idDocument));
+        }
+        return responses;
+    }
+    @Override
+    @Transactional
+    public List<FileResponse> getAllFileByCategory(String idCategory) {
+        List<DocumentEntity> documentEntities =
+                documentRepo.findByCategoryEntity_IdCategoryAndIsDeletedFalse(idCategory);
+
+        return documentEntities.stream()
+                .map(DocumentEntity::getFileEntity)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .map(file -> {
+                    FileResponse response = fileMapper.toResponse(file);
+                    try {
+                        if (response.getPartFile() != null && !response.getPartFile().isBlank())
+                            response.setPartFile(getUrl.getFileUrl(response.getPartFile()));
+                        if (response.getThumbnail() != null && !response.getThumbnail().isBlank())
+                            response.setThumbnail(getUrl.getFileUrl(response.getThumbnail()));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Không thể tạo URL cho file: " + file.getFileName(), e);
+                    }
+                    return response;
+                })
+                .toList();
+    }
+
+    // Suy loại tài liệu từ loại file
+    private TypeDocument mapFileToDocumentType(TypeFile typeFile) {
+        return switch (typeFile) {
+            case MP4        -> TypeDocument.VIDEO;
+            case MP3        -> TypeDocument.AUDIO;
+            case PDF        -> TypeDocument.PDF;
+            case PNG, JPG   -> TypeDocument.IMAGE;
+            default         -> TypeDocument.DOCUMENT;   // DOCX, ZIP...
+        };
+    }
 }
 
 

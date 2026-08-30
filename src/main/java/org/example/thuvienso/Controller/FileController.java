@@ -174,4 +174,26 @@ public class FileController {
                 .build();
     }
 
+    @PostMapping(value = "/upload/category/{idCategory}", consumes = "multipart/form-data")
+    public ApiResponse<List<FileResponse>> uploadFilesToCategory(
+            @RequestPart("file") MultipartFile[] files,
+            @PathVariable("idCategory") String idCategory
+    ) throws Exception {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0).success(true)
+                .message("Upload file vào danh mục thành công")
+                .Result(fileService.uploadFilesToCategory(files, idCategory))
+                .build();
+    }
+    @GetMapping("/category/{idCategory}")
+    public ApiResponse<List<FileResponse>> getAllFileByCategory(
+            @PathVariable("idCategory") String idCategory
+    ) {
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0).success(true)
+                .message("Lấy danh sách file theo thể loại thành công")
+                .Result(fileService.getAllFileByCategory(idCategory))
+                .build();
+    }
+
 }

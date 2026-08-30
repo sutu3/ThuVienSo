@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Response.Book.BookResponse;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
+import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.AccountEntity;
 import org.example.thuvienso.Module.BookEntity;
@@ -34,6 +35,7 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
     AccountRepo accountRepo;
     BookService bookService;
     BookMapper bookMapper;
+    GetUrl getUrl;
 
     @Override
     @Transactional
@@ -65,7 +67,11 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
         return readingHistoryRepo
                 .findByAccount_IdAccountOrderByLastReadAtDesc(account.getIdAccount())
                 .stream()
-                .map(h -> bookMapper.toResponse(h.getBook()))
+                .map(h -> {
+                    BookResponse bookResponse=bookMapper.toResponse(h.getBook());
+                    bookResponse.setThumbnail(getUrl.getFileUrl(bookResponse.getThumbnail()));
+                    return bookResponse;
+                })
                 .collect(Collectors.toList());
     }
 
