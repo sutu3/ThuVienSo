@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Request.CategoryRequest;
 import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
-import org.example.thuvienso.Dto.Response.Category.CategoryResponseNoList;
 import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CategoryServiceImpl implements CategoryService {
-    private final CategoryRepo categoryRepo;
+    CategoryRepo categoryRepo;
     CategoryMapper categoryMapper;
 
     @Override

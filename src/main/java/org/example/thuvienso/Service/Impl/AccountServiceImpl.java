@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AccountServiceImpl implements AccountService {
-    private final RoleRepo roleRepo;
+    RoleRepo roleRepo;
     AccountMapper accountMapper;
     AccountRepo accountRepo;
     @Override

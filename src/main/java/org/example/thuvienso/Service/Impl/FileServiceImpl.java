@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.example.thuvienso.Dto.Request.DocumentRequest;
-import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
-import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
-import org.example.thuvienso.Dto.Response.File.FileResponseNoList;
 import org.example.thuvienso.Dto.Response.FileUploadResponse;
 import org.example.thuvienso.Enum.BookFileRole;
 import org.example.thuvienso.Enum.StatusDocument;
@@ -24,7 +21,6 @@ import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Helper.ThumbnailGenerator;
 import org.example.thuvienso.Mapper.FileMapper;
-import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.CategoryEntity;
 import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Module.FileEntity;
@@ -45,28 +41,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileServiceImpl implements FileService {
-    private final CategoryRepo categoryRepo;
-
-
-    private final DocumentRepo documentRepo;
+    CategoryRepo categoryRepo;
+    DocumentRepo documentRepo;
     DocumentService documentService;
     FileRepo fileRepo;
     MinioService minioService;
     FileMapper fileMapper;
-    MinioClient minioClient;
     ThumbnailGenerator thumbnailGenerator;
     LocalStorage localStorage;
     GetUrl getUrl;

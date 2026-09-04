@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DocumentServiceImpl implements DocumentService {
-    private final DocumentRepo documentRepo;
+    DocumentRepo documentRepo;
     DocumentMapper documentMapper;
     CategoryService categoryService;
     FolderService folderService;

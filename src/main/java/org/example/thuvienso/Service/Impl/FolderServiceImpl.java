@@ -14,13 +14,8 @@ import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.FolderForm;
 import org.example.thuvienso.Helper.FolderServiceHelper;
-import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Mapper.FolderMapper;
-import org.example.thuvienso.Module.DocumentEntity;
-import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Module.FolderEntity;
-import org.example.thuvienso.Repo.DocumentRepo;
-import org.example.thuvienso.Repo.FileRepo;
 import org.example.thuvienso.Repo.FolderRepo;
 import org.example.thuvienso.Service.FolderService;
 import org.springframework.stereotype.Service;
@@ -34,11 +29,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FolderServiceImpl implements FolderService {
-    private final FolderRepo folderRepo;
+    FolderRepo folderRepo;
     FolderMapper folderMapper;
-    DocumentRepo documentRepo;
-    FileRepo fileRepo;
-    LocalStorage localStorage;
     FolderServiceHelper folderServiceHelper;
 
     @Override

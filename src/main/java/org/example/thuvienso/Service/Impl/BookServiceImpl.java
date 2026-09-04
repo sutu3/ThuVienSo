@@ -19,8 +19,6 @@ import org.example.thuvienso.Helper.QrCodeGenerator;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.BookEntity;
 import org.example.thuvienso.Module.CategoryEntity;
-import org.example.thuvienso.Module.DocumentEntity;
-import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Repo.BookRepo;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Service.BookService;

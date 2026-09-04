@@ -32,7 +32,7 @@ public class DatabaseBackupJob {
     private String backupDir;
     @Value("${backup.mysqldump-path:mysqldump}")
     private String mysqldumpPath;
-    @Value("${backup.keep:0}")
+    @Value("${backup.keep:4}")
     private int keep;
 
     // Giây Phút Giờ Ngày Tháng Thứ  -> 02:00 ngày 1 của tháng 1,4,7,10 (mỗi 3 tháng)

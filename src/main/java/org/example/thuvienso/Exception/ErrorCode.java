@@ -53,6 +53,9 @@ public enum ErrorCode {
     NEWS_SLUG_EXISTS(6002, "Đường dẫn bài viết đã tồn tại", HttpStatus.CONFLICT),
     NEWS_INVALID_STATUS(6003, "Trạng thái bài viết không hợp lệ", HttpStatus.BAD_REQUEST),
 
+    // ===== QR(7xxx) =====
+    SIZE_TEXT_IS_TOO_BIG(7001,"Đoạn văn không được lớn hơn 200 ký tự ",HttpStatus.BAD_REQUEST)
+
 
 
     ;

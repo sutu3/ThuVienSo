@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.example.thuvienso.Dto.Request.DocumentRequest;
 import org.example.thuvienso.Dto.Request.NewsRequest;
 import org.example.thuvienso.Dto.Response.News.NewsResponse;
 import org.example.thuvienso.Enum.StatusDocument;
@@ -24,8 +23,6 @@ import org.example.thuvienso.Service.Impl.Specification.NewSpecification;
 import org.example.thuvienso.Service.MinioService;
 import org.example.thuvienso.Service.NewsService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +45,6 @@ public class NewsServiceImpl implements NewsService {
     NewsContentImageProcessor newsContentImageProcessor;
     NewsHtmlThumbnailGenerator newsHtmlThumbnailGenerator;
     MinioService minioService;
-    NewSpecification newSpecification;
     DocumentService documentService;
 
     GetUrl getUrl;
@@ -122,13 +118,13 @@ public class NewsServiceImpl implements NewsService {
             int page,
             int size
     ) {
-        Specification<DocumentEntity> spec = newSpecification.baseSpec()
+        Specification<DocumentEntity> spec = NewSpecification.baseSpec()
                 .and((root, query, cb) ->
                         cb.equal(root.get("status"), StatusDocument.Approve)
                 ).and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("publishedAt"), LocalDateTime.now()));
 
         if (StringUtils.hasText(keyword)) {
-            spec = spec.and(newSpecification.keywordSpec(keyword));
+            spec = spec.and(NewSpecification.keywordSpec(keyword));
         }
 
         if (StringUtils.hasText(categoryId)) {
@@ -140,17 +136,17 @@ public class NewsServiceImpl implements NewsService {
             );
         }
 
-        return documentRepo.findAll(spec, newSpecification.pageable(page, size)).map(this::toResponse);
+        return documentRepo.findAll(spec, NewSpecification.pageable(page, size)).map(this::toResponse);
     }
     @Override
     @Transactional(readOnly = true)
     public Page<NewsResponse> getForAdmin(String keyword, String status, int page, int size) {
-        Specification<DocumentEntity> spec = newSpecification.baseSpec();
-        if (StringUtils.hasText(keyword)) spec = spec.and(newSpecification.keywordSpec(keyword));
+        Specification<DocumentEntity> spec = NewSpecification.baseSpec();
+        if (StringUtils.hasText(keyword)) spec = spec.and(NewSpecification.keywordSpec(keyword));
         if (StringUtils.hasText(status))
             spec = spec.and((root, query, cb)
                     -> cb.equal(root.get("status"), parseStatus(status)));
-        return documentRepo.findAll(spec, newSpecification.pageable(page, size)).map(this::toResponse);
+        return documentRepo.findAll(spec, NewSpecification.pageable(page, size)).map(this::toResponse);
     }
 
     @Override

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RoleServiceImpl implements RoleService {
-    private final RoleRepo roleRepo;
+    RoleRepo roleRepo;
     RoleMapper roleMapper;
 
     @Override
