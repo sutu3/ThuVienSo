@@ -10,14 +10,19 @@ import org.example.thuvienso.Dto.Request.FolderRequest;
 import org.example.thuvienso.Dto.Response.Folder.ChildFolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponseNoList;
+import org.example.thuvienso.Enum.FolderVisibility;
 import org.example.thuvienso.Exception.AppException;
 import org.example.thuvienso.Exception.ErrorCode;
 import org.example.thuvienso.Form.FolderForm;
 import org.example.thuvienso.Helper.FolderServiceHelper;
+import org.example.thuvienso.Helper.GetAccountByToken;
 import org.example.thuvienso.Mapper.FolderMapper;
+import org.example.thuvienso.Module.AccountEntity;
 import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Repo.FolderRepo;
 import org.example.thuvienso.Service.FolderService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,14 +41,24 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public FolderResponse create(FolderRequest request) {
         FolderEntity folder = folderMapper.toEntity(request);
-        if (request.getParentFolder() != null) {
-            FolderEntity parent = getById(request.getParentFolder());
-            folder.setParentFolder(parent);
+        FolderVisibility vis=request.getVisibility()?FolderVisibility.PRIVATE:FolderVisibility.PUBLIC;
 
+        if (request.getParentFolder() != null && !request.getParentFolder().isBlank()) {
+            FolderEntity parent = getById(request.getParentFolder());
+            checkAccess(parent);                       // chặn tạo con trong private của người khác
+            folder.setParentFolder(parent);
+            // con kế thừa phạm vi & chủ sở hữu của cha
+            folder.setVisibility(vis);
+            folder.setOwner(parent.getOwner());
+        } else {
+            // thư mục gốc: theo request (mặc định PUBLIC)
+
+            folder.setVisibility(vis);
+            folder.setOwner(vis == FolderVisibility.PRIVATE ? GetAccountByToken.getCurrentAccount() : null);
         }
+
         folder.setCreatedAt(LocalDateTime.now());
         folder.setIsDeleted(false);
-
         return folderMapper.toResponse(folderRepo.save(folder));
     }
 
@@ -158,6 +173,52 @@ public class FolderServiceImpl implements FolderService {
             throw new AppException(ErrorCode.FOLDER_NOT_DELETED);
         }
         folderServiceHelper.deleteFolderRecursively(folder);
+    }
+
+
+    @Override
+    @Transactional
+    public FolderResponse getMyPrivateRoot() {
+        AccountEntity me = GetAccountByToken.getCurrentAccount();
+        FolderEntity root = folderRepo
+                .findByOwner_IdAccountAndParentFolderIsNullAndVisibility(
+                        me.getIdAccount(), FolderVisibility.PRIVATE)
+                .orElseGet(() -> {
+                    FolderEntity f = FolderEntity.builder()
+                            .folderName("Thư mục của " + me.getUserName())
+                            .description("Thư mục riêng")
+                            .visibility(FolderVisibility.PRIVATE)
+                            .owner(me)
+                            .isDeleted(false)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    return folderRepo.save(f);
+                });
+        return folderMapper.toResponse(root);
+    }
+
+    @Override
+    public List<FolderResponseNoList> getPublicRoots() {
+        return folderRepo
+                .findByVisibilityAndParentFolderIsNull(FolderVisibility.PUBLIC)
+                .stream()
+                .filter(f -> !Boolean.TRUE.equals(f.getIsDeleted()))
+                .map(folderMapper::toResponseNoList)
+                .collect(Collectors.toList());
+    }
+
+    // Lấy account đang đăng nhập từ JWT (giống FavoriteServiceImpl)
+
+
+    // Chặn truy cập thư mục private không thuộc về mình
+    private void checkAccess(FolderEntity folder) {
+        if (folder.getVisibility() == FolderVisibility.PRIVATE) {
+            AccountEntity me = GetAccountByToken.getCurrentAccount();
+            if (folder.getOwner() == null
+                    || !folder.getOwner().getIdAccount().equals(me.getIdAccount())) {
+                throw new AppException(ErrorCode.FOLDER_ACCESS_DENIED);
+            }
+        }
     }
 
 

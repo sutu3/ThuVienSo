@@ -27,6 +27,7 @@ public interface BookMapper {
 
     @Mapping(source = "documentEntity", target = "document")
     @Mapping(source = "documentEntity.thumbnail", target = "thumbnail")
+    @Mapping(source = "documentEntity.fileEntity", target = "fileEntity") // thêm dòng này
     BookResponse toResponse(BookEntity entity);
 
     void update(

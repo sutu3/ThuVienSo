@@ -18,4 +18,5 @@ public class FolderRequest {
     String folderName;
     String description;
     String parentFolder;
+    Boolean visibility;
 }

@@ -45,6 +45,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,8 +67,8 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file, String idDocument) throws Exception {
-        if (file.getSize() > 100L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
-        if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(idDocument,file.getOriginalFilename(),TypeFile.fromMimeType(file.getContentType()))) throw new AppException(ErrorCode.FILE_IS_EXIST);
+        if (file.getSize() >  1024L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
+        if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFileAndIsDeleted(idDocument,file.getOriginalFilename(),TypeFile.fromMimeType(file.getContentType()),false)) throw new AppException(ErrorCode.FILE_IS_EXIST);
         FileUploadResponse uploaded = minioService.upload(file);
         DocumentEntity document = documentService.getById(idDocument);
 
@@ -179,11 +180,35 @@ public class FileServiceImpl implements FileService {
                 .body(new InputStreamResource(stream));
     }
     @Override
-    public void deleteFile(String id) throws IOException {
+    public void deleteHardFile(String id) throws IOException {
         FileEntity fileEntity = fileRepo.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
         localStorage.delete(fileEntity.getPartFile());
         fileRepo.delete(fileEntity);
+    }
+
+    @Override
+    public void deleteFile(String id) {
+        FileEntity fileEntity = fileRepo.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+        fileEntity.setDeletedAt(LocalDateTime.now());
+        fileEntity.setIsDeleted(true);
+        fileRepo.save(fileEntity);
+    }
+
+    @Override
+    public FileResponse restoreFile(String idFile) {
+        FileEntity file=getById(idFile);
+        file.setIsDeleted(false);
+        fileRepo.save(file);
+        return fileMapper.toResponse(file);
+    }
+
+    @Override
+    public List<FileResponse> getFilesDeleted() {
+        return fileRepo.findAllByIsDeleted(true)
+                .stream().map(fileMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -252,6 +277,7 @@ public class FileServiceImpl implements FileService {
                 .map(DocumentEntity::getFileEntity)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
+                .filter(file -> !file.getIsDeleted())
                 .map(file -> {
                     FileResponse response = fileMapper.toResponse(file);
                     fileServiceHelper.buildUrl(response);
@@ -299,7 +325,7 @@ public class FileServiceImpl implements FileService {
 
                 if (Boolean.TRUE.equals(source.getIsDeleted())) continue; // bỏ file đã xóa mềm
 
-            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile())){
+            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFileAndIsDeleted(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile(),false)){
                 throw new AppException(ErrorCode.FILE_IS_EXIST);
             }
 
@@ -350,7 +376,7 @@ public class FileServiceImpl implements FileService {
                     .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
 
             if (Boolean.TRUE.equals(source.getIsDeleted())) continue; // bỏ file đã xóa mềm
-            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile())){
+            if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFileAndIsDeleted(targetDocument.getIdDocument(),source.getFileName(),source.getTypeFile(),false)){
                 throw new AppException(ErrorCode.FILE_IS_EXIST);
             }
 

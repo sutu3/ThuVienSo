@@ -6,6 +6,9 @@ import lombok.experimental.SuperBuilder;
 import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponse;
 import org.example.thuvienso.Dto.Response.Document.DocumentResponseNoList;
+import org.example.thuvienso.Dto.Response.File.FileResponseNoList;
+
+import java.util.List;
 
 @SuperBuilder
 @Data
@@ -24,6 +27,7 @@ public class BookResponse {
     Integer totalCopies;
     Integer availableCopies;
     CategoryResponse categoryEntity;
+    List<FileResponseNoList> fileEntity;
     String thumbnail;
     String qrCode;
     DocumentResponseNoList document;

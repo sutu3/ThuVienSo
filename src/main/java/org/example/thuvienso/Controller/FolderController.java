@@ -142,4 +142,22 @@ public class FolderController {
                 .success(true)
                 .build();
     }
+
+    @GetMapping("/private/my")
+    public ApiResponse<FolderResponse> getMyPrivateRoot() {
+        return ApiResponse.<FolderResponse>builder()
+                .code(0).success(true)
+                .message("Lấy thư mục riêng thành công")
+                .Result(folderService.getMyPrivateRoot())
+                .build();
+    }
+
+    @GetMapping("/public/roots")
+    public ApiResponse<List<FolderResponseNoList>> getPublicRoots() {
+        return ApiResponse.<List<FolderResponseNoList>>builder()
+                .code(0).success(true)
+                .message("Lấy thư mục công khai thành công")
+                .Result(folderService.getPublicRoots())
+                .build();
+    }
 }

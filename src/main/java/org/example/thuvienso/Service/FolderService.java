@@ -37,4 +37,8 @@ public interface FolderService {
 
     void hardDeleteFolder(String id);
 
+    FolderResponse getMyPrivateRoot();
+
+    List<FolderResponseNoList> getPublicRoots();
+
 }

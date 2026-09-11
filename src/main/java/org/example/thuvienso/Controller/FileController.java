@@ -1,13 +1,11 @@
 package org.example.thuvienso.Controller;
 
 import io.minio.errors.*;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.thuvienso.Dto.ApiResponse;
 import org.example.thuvienso.Dto.Request.CopyFileRequest;
-import org.example.thuvienso.Dto.Request.CopyFolderRequest;
 import org.example.thuvienso.Dto.Request.CutFolderRequest;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
@@ -107,7 +105,7 @@ public class FileController {
                 .build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/hard/{id}")
     public ApiResponse<Void> deleteFile(
             @PathVariable("id") String id
     ) throws ServerException,
@@ -120,6 +118,20 @@ public class FileController {
             XmlParserException,
             InternalException {
 
+        fileService.deleteHardFile(id);
+
+        return ApiResponse.<Void>builder()
+                .code(0)
+                .message("Xóa cứng file thành công")
+                .success(true)
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deletedById(
+            @PathVariable("id") String id
+    ) {
+
         fileService.deleteFile(id);
 
         return ApiResponse.<Void>builder()
@@ -128,6 +140,18 @@ public class FileController {
                 .success(true)
                 .build();
     }
+
+    @GetMapping("/deleted")
+    public ApiResponse<List<FileResponse>> getAllFolderDeleted() {
+
+        return ApiResponse.<List<FileResponse>>builder()
+                .code(0)
+                .message("Lấy danh sách file đã xóa thành công")
+                .success(true)
+                .Result(fileService.getFilesDeleted())
+                .build();
+    }
+
     @PostMapping(value = "/upload/folder/{idFolder}", consumes = "multipart/form-data")
     public ApiResponse<List<FileResponse>> uploadFilesToFolder(
             @RequestPart("file") MultipartFile[] files,
@@ -139,9 +163,23 @@ public class FileController {
                 .Result(fileService.uploadFilesToFolder(files, idFolder))
                 .build();
     }
+
+    @PutMapping("/restore/{id}")
+    public ApiResponse<FileResponse> restoreFolder(
+            @PathVariable("id") String id
+    ) {
+
+        return ApiResponse.<FileResponse>builder()
+                .code(0)
+                .message("Khôi phục file thành công")
+                .success(true)
+                .Result(fileService.restoreFile(id))
+                .build();
+    }
+
     @GetMapping("/folder/{idFolder}")
     public ApiResponse<List<FileResponse>> getAllFileByIdDocument(
-           @PathVariable("idFolder") String idFolder
+            @PathVariable("idFolder") String idFolder
     ) {
         return ApiResponse.<List<FileResponse>>builder()
                 .code(0).success(true)
@@ -149,6 +187,7 @@ public class FileController {
                 .Result(fileService.getAllFileByFolder(idFolder))
                 .build();
     }
+
     @PostMapping("/copy/{idFolderParent}")
     public ApiResponse<List<FileResponse>> copyFile(
             @RequestBody CopyFileRequest files,
@@ -161,6 +200,7 @@ public class FileController {
                 .Result(fileService.copyFile(files.getFiles(), idFolderParent))
                 .build();
     }
+
     @PostMapping("/cut/{idFolderParent}")
     public ApiResponse<List<FileResponse>> moveFile(
             @RequestBody CutFolderRequest files,
@@ -185,6 +225,7 @@ public class FileController {
                 .Result(fileService.uploadFilesToCategory(files, idCategory))
                 .build();
     }
+
     @GetMapping("/category/{idCategory}")
     public ApiResponse<List<FileResponse>> getAllFileByCategory(
             @PathVariable("idCategory") String idCategory

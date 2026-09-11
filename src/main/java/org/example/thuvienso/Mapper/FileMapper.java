@@ -3,6 +3,7 @@ package org.example.thuvienso.Mapper;
 
 import org.example.thuvienso.Dto.Request.FileRequest;
 import org.example.thuvienso.Dto.Response.File.FileResponse;
+import org.example.thuvienso.Dto.Response.File.FileResponseNoList;
 import org.example.thuvienso.Module.FileEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,4 +19,6 @@ public interface FileMapper {
 
     //    @Mapping(target = "role",ignore = true)
     FileResponse toResponse(FileEntity FileEntity);
+    FileResponseNoList toResponseNoList(FileEntity fileEntity); // thêm dòng này
+
 }

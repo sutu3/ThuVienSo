@@ -2,7 +2,6 @@ package org.example.thuvienso.Repo;
 
 import org.example.thuvienso.Enum.TypeFile;
 import org.example.thuvienso.Module.FileEntity;
-import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -12,11 +11,13 @@ import java.util.Optional;
 public interface FileRepo extends JpaRepository<FileEntity, String> {
     Optional<FileEntity> findByFileName(String fileName);
 
+    List<FileEntity> findAllByIsDeleted(boolean isDeleted);
+
     List<FileEntity> findByDocumentEntity_IdDocument(String idDocument);
 
     List<FileEntity> findAllByDocumentEntity_IdDocument(String idDocument);
 
-    boolean existsByDocumentEntity_IdDocumentAndFileNameAndTypeFile(String idDocument, String fileName, TypeFile typeFile);
+    boolean existsByDocumentEntity_IdDocumentAndFileNameAndTypeFileAndIsDeleted(String idDocument, String fileName, TypeFile typeFile, boolean isDeleted);
 
     List<FileEntity> findByDocumentEntityIsNullAndCreatedAtBefore(LocalDateTime threshold);
 

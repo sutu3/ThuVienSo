@@ -22,10 +22,10 @@ public class GetUrl {
 
     public String getFileUrl(String objectName) {
         if (objectName == null || objectName.isBlank()) return null;
-        DocumentEntity document=documentRepo.findByObjectName(objectName)
-                .orElseThrow(()-> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));
-        document.setViewCount((document.getViewCount() == null ? 0 : document.getViewCount()) + 1);
-        documentRepo.save(document);
+//        DocumentEntity document=documentRepo.findByThumbnail(objectName)
+//                .orElseThrow(()-> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));
+//        document.setViewCount((document.getViewCount() == null ? 0 : document.getViewCount()) + 1);
+//        documentRepo.save(document);
         return baseUrl.replaceAll("/+$", "") + "/" + objectName;
     }
 }

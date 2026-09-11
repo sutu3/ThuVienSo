@@ -59,24 +59,38 @@ public class ApplicationInitConfig {
                 initIcons();
                 CategoryResponse categoryResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Khác")
+                        .parentCategory(null)
+                                .isDisplay(true)
                         .build());
                 CategoryResponse FolderResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Folder")
+                        .parentCategory(null)
+                        .isDisplay(false)
                         .build());
                 CategoryResponse NewsResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Tin Tức")
+                        .parentCategory(null)
+                        .isDisplay(true)
+
                         .build());
                 CategoryResponse VideoResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Phim")
+                        .parentCategory(null)
+                        .isDisplay(true)
                         .build());
                 CategoryResponse BookResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Sách")
+                        .parentCategory(null)
+                        .isDisplay(true)
                         .build());
                 CategoryResponse LessonResponse=categoryService.createCategory(CategoryRequest.builder()
                         .categoryName("Tài liệu")
+                        .parentCategory(null)
+                        .isDisplay(true)
                         .build());
                 CategoryEntity category=categoryService.getById(FolderResponse.getIdCategory());
                 category.setIsDisplay(false);
+
                 categoryRepo.save(category);
 
 
@@ -84,6 +98,7 @@ public class ApplicationInitConfig {
                         .folderName("Sư đoàn 5")
                         .description("Thư mục gốc")
                         .parentFolder(null)
+                        .visibility(false)
                         .build());
                 RoleEntity vaiTro =
                         roleRepo.findByRoleName("admin")
@@ -107,22 +122,6 @@ public class ApplicationInitConfig {
 
                                     return roleRepo.save(role);
                                 });
-
-                FolderResponse folderMusic=folderService.create(FolderRequest.builder()
-                                .folderName("Âm Nhạc")
-                                .description("Thư mục chứ các thư mục con hoặc tập tin về âm nhạc")
-                                .parentFolder(null)
-                        .build());
-                FolderResponse folderDocument=folderService.create(FolderRequest.builder()
-                        .folderName("Tài liệu")
-                        .description("Thư mục chứ các thư mục con hoặc tập tin về tài liệu")
-                        .parentFolder(null)
-                        .build());
-                FolderResponse folderImage=folderService.create(FolderRequest.builder()
-                        .folderName("Hình ảnh")
-                        .description("Thư mục chứ các thư mục con hoặc tập tin về hình ảnh")
-                        .parentFolder(null)
-                        .build());
 
                 CollectionResponse noiBat=collectionService.create(CollectionRequest.builder()
                                 .collectionName("Nổi Bật")

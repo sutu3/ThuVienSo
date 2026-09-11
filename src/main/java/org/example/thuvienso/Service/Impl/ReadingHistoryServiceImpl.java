@@ -11,8 +11,10 @@ import org.example.thuvienso.Helper.GetUrl;
 import org.example.thuvienso.Mapper.BookMapper;
 import org.example.thuvienso.Module.AccountEntity;
 import org.example.thuvienso.Module.BookEntity;
+import org.example.thuvienso.Module.DocumentEntity;
 import org.example.thuvienso.Module.ReadingHistoryEntity;
 import org.example.thuvienso.Repo.AccountRepo;
+import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Repo.ReadingHistoryRepo;
 import org.example.thuvienso.Service.BookService;
 import org.example.thuvienso.Service.ReadingHistoryService;
@@ -35,6 +37,7 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
     AccountRepo accountRepo;
     BookService bookService;
     BookMapper bookMapper;
+    DocumentRepo documentRepo;
     GetUrl getUrl;
 
     @Override
@@ -42,7 +45,9 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
     public void markRead(String idBook) {
         AccountEntity account = getCurrentAccount();
         BookEntity book = bookService.getById(idBook); // ném BOOK_NOT_FOUND nếu không có
-
+        DocumentEntity document=book.getDocumentEntity();
+        document.setViewCount((document.getViewCount() == null ? 0 : document.getViewCount()) + 1);
+        documentRepo.save(document);
         ReadingHistoryEntity record = readingHistoryRepo
                 .findByAccount_IdAccountAndBook_IdBook(account.getIdAccount(), idBook)
                 .orElse(null);

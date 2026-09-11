@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import org.example.thuvienso.Enum.FolderVisibility;
 
 import java.util.List;
 
@@ -29,6 +30,14 @@ public class FolderEntity extends BaseEntity{
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parentFolderId")
     FolderEntity parentFolder;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", columnDefinition = "VARCHAR(20) DEFAULT 'PUBLIC' COMMENT 'Phạm vi thư mục'")
+    FolderVisibility visibility;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "idOwner")   // null = thư mục public dùng chung
+    AccountEntity owner;
 
     @OneToMany(mappedBy = "parentFolder")
     List<FolderEntity> childFolder;

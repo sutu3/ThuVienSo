@@ -17,7 +17,7 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, Jpa
 
     List<DocumentEntity> findAllByTitle(String title);
 
-    Optional<DocumentEntity> findByObjectName(String objectName);
+    Optional<DocumentEntity> findByThumbnail(String objectName);
 
     Optional<DocumentEntity> findBySlugAndTypeDocumentAndIsDeletedFalse(String slug, TypeDocument typeDocument);
 

@@ -24,6 +24,8 @@ public interface FolderMapper {
     @Mapping(target = "documentEntity",ignore = true)
     @Mapping(target = "parentFolder",ignore = true)
     @Mapping(target = "childFolder",ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "visibility", ignore = true)
     FolderEntity toEntity(FolderRequest request);
 
     //    @Mapping(target = "role",ignore = true)
