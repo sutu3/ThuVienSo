@@ -17,10 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class FolderServiceHelper {
-    LocalStorage localStorage;
-    DocumentRepo documentRepo;
-    FileRepo fileRepo;
-    FolderRepo folderRepo;
+    private final LocalStorage localStorage;
+    private final DocumentRepo documentRepo;
+    private final FileRepo fileRepo;
+    private final FolderRepo folderRepo;
 
     // target có trùng source hoặc nằm trong cây con của source không?
     public boolean isSameOrDescendant(FolderEntity source, FolderEntity target) {

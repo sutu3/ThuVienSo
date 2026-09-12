@@ -18,13 +18,13 @@ public class AccountEntity extends BaseEntity{
     @Column(name = "idAccount",columnDefinition = "VARCHAR(36) COMMENT 'Id của tài khoản'")
     String idAccount;
 
-    @Column(name = "userName",columnDefinition = "VARCHAR(256) COMMENT 'tên đăng nhập'")
+    @Column(name = "accountName",columnDefinition = "VARCHAR(256) COMMENT 'tên người dùng'")
     String accountName;
 
     @Column(name = "password",columnDefinition = "VARCHAR(255) COMMENT 'mật khẩu đăng nhập'")
     String password;
 
-    @Column(name = "name",columnDefinition = "VARCHAR(255) COMMENT 'tên người dùng'")
+    @Column(name = "userName",columnDefinition = "VARCHAR(255) COMMENT 'tên đăng nhập'")
     String userName;
     @ManyToOne
     @JoinColumn(name = "idRole",nullable = false)

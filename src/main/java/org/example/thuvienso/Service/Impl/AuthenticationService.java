@@ -69,6 +69,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
         var account = accountRepo
                 .findByUserName(request.getUserName())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));

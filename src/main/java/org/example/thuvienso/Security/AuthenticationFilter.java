@@ -109,7 +109,7 @@ public class AuthenticationFilter {
 
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8080",
-                "http://192.168.1.4:5173","http://192.168.1.67:5173",
+                "http://192.168.1.4:5173","http://192.168.1.67:5173","http://192.168.2.46:5173",
                 "http://localhost:5174",
                 "http://localhost:5173",
                 "http://192.168.1.28:5173"

@@ -13,6 +13,7 @@ import org.example.thuvienso.Dto.Response.Category.CategoryResponse;
 import org.example.thuvienso.Dto.Response.Collection.CollectionResponse;
 import org.example.thuvienso.Dto.Response.Folder.FolderResponse;
 import org.example.thuvienso.Enum.FileIcon;
+import org.example.thuvienso.Enum.FolderVisibility;
 import org.example.thuvienso.Enum.TypeCollection;
 import org.example.thuvienso.Helper.LocalStorage;
 import org.example.thuvienso.Module.AccountEntity;
@@ -21,6 +22,7 @@ import org.example.thuvienso.Module.FolderEntity;
 import org.example.thuvienso.Module.RoleEntity;
 import org.example.thuvienso.Repo.AccountRepo;
 import org.example.thuvienso.Repo.CategoryRepo;
+import org.example.thuvienso.Repo.FolderRepo;
 import org.example.thuvienso.Repo.RoleRepo;
 import org.example.thuvienso.Service.CategoryService;
 import org.example.thuvienso.Service.CollectionService;
@@ -50,7 +52,7 @@ public class ApplicationInitConfig {
     @Bean
     ApplicationRunner applicationRunner(AccountRepo accountRepo, CategoryService categoryService,
                                         RoleRepo roleRepo, FolderService folderService, CollectionService collectionService,
-                                        CategoryRepo categoryRepo) {
+                                        CategoryRepo categoryRepo, FolderRepo folderRepo) {
         return args -> {
 
             // Initial data setup
@@ -94,12 +96,8 @@ public class ApplicationInitConfig {
                 categoryRepo.save(category);
 
 
-                FolderResponse folderSư5=folderService.create(FolderRequest.builder()
-                        .folderName("Sư đoàn 5")
-                        .description("Thư mục gốc")
-                        .parentFolder(null)
-                        .visibility(false)
-                        .build());
+
+
                 RoleEntity vaiTro =
                         roleRepo.findByRoleName("admin")
                                 .orElseGet(() -> {
@@ -123,6 +121,28 @@ public class ApplicationInitConfig {
                                     return roleRepo.save(role);
                                 });
 
+                AccountEntity user = AccountEntity.builder()
+                        .userName("admin")
+                        .accountName("admin")
+                        .password(passwordEncoder.encode("admin"))
+                        .createdAt(LocalDateTime.now())
+                        .roleEntity(vaiTro)
+                        .isDeleted(false)
+                        .build();
+
+
+                accountRepo.save(user);
+
+                FolderEntity privateRoot = FolderEntity.builder()
+                        .folderName("Sư đoàn 5")
+                        .description("Thư mục gốc")
+                        .visibility(FolderVisibility.PUBLIC)
+                        .owner(user)
+                        .parentFolder(null)          // là node gốc
+                        .isDeleted(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                folderRepo.save(privateRoot);
                 CollectionResponse noiBat=collectionService.create(CollectionRequest.builder()
                                 .collectionName("Nổi Bật")
                                 .typeCollection(TypeCollection.FEATURED.name())
@@ -148,16 +168,17 @@ public class ApplicationInitConfig {
                         .typeCollection(TypeCollection.THIS_MONTH.name())
                         .build());
 
-                AccountEntity user = AccountEntity.builder()
-                        .userName("admin")
-                        .accountName("admin")
-                        .password(passwordEncoder.encode("admin"))
-                        .createdAt(LocalDateTime.now())
-                        .roleEntity(vaiTro)
-                        .isDeleted(false)
-                        .build();
 
-                accountRepo.save(user);
+                FolderEntity suDoan5 = FolderEntity.builder()
+                        .folderName("Thư mục của " + user.getUserName())
+                        .description("Thư mục riêng tư của " + user.getUserName())
+                        .visibility(FolderVisibility.PRIVATE)
+                        .owner(user)
+                        .parentFolder(null)          // là node gốc
+                        .isDeleted(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                folderRepo.save(suDoan5);
             }
 
             log.warn("user admin created with default password username is admin");

@@ -37,14 +37,16 @@ public class FolderServiceImpl implements FolderService {
     FolderRepo folderRepo;
     FolderMapper folderMapper;
     FolderServiceHelper folderServiceHelper;
+    GetAccountByToken getAccountByToken;
 
     @Override
     public FolderResponse create(FolderRequest request) {
         FolderEntity folder = folderMapper.toEntity(request);
-        FolderVisibility vis=request.getVisibility()?FolderVisibility.PRIVATE:FolderVisibility.PUBLIC;
+        //FolderVisibility vis=request.getVisibility()?FolderVisibility.PRIVATE:FolderVisibility.PUBLIC;
 
         if (request.getParentFolder() != null && !request.getParentFolder().isBlank()) {
             FolderEntity parent = getById(request.getParentFolder());
+            FolderVisibility vis=parent.getVisibility();
             checkAccess(parent);                       // chặn tạo con trong private của người khác
             folder.setParentFolder(parent);
             // con kế thừa phạm vi & chủ sở hữu của cha
@@ -52,9 +54,8 @@ public class FolderServiceImpl implements FolderService {
             folder.setOwner(parent.getOwner());
         } else {
             // thư mục gốc: theo request (mặc định PUBLIC)
-
-            folder.setVisibility(vis);
-            folder.setOwner(vis == FolderVisibility.PRIVATE ? GetAccountByToken.getCurrentAccount() : null);
+            folder.setVisibility(FolderVisibility.PRIVATE);
+            folder.setOwner(getAccountByToken.getCurrentAccount());
         }
 
         folder.setCreatedAt(LocalDateTime.now());
@@ -179,7 +180,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional
     public FolderResponse getMyPrivateRoot() {
-        AccountEntity me = GetAccountByToken.getCurrentAccount();
+        AccountEntity me = getAccountByToken.getCurrentAccount();
         FolderEntity root = folderRepo
                 .findByOwner_IdAccountAndParentFolderIsNullAndVisibility(
                         me.getIdAccount(), FolderVisibility.PRIVATE)
@@ -213,7 +214,7 @@ public class FolderServiceImpl implements FolderService {
     // Chặn truy cập thư mục private không thuộc về mình
     private void checkAccess(FolderEntity folder) {
         if (folder.getVisibility() == FolderVisibility.PRIVATE) {
-            AccountEntity me = GetAccountByToken.getCurrentAccount();
+            AccountEntity me = getAccountByToken.getCurrentAccount();
             if (folder.getOwner() == null
                     || !folder.getOwner().getIdAccount().equals(me.getIdAccount())) {
                 throw new AppException(ErrorCode.FOLDER_ACCESS_DENIED);
