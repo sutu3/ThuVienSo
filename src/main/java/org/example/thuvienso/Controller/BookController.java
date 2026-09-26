@@ -101,4 +101,18 @@ public class BookController {
                 .Result(bookService.addAudio(id, audio))
                 .build();
     }
+    @GetMapping("/category/{idCategory}")
+    public ApiResponse<List<BookResponse>> getByCategory(@PathVariable("idCategory") String idCategory) {
+        return ApiResponse.<List<BookResponse>>builder()
+                .code(0).success(true).message("Lấy sách theo thể loại thành công")
+                .Result(bookService.getByCategory(idCategory))
+                .build();
+    }
+    @GetMapping("/newest")
+    public ApiResponse<List<BookResponse>> getNewestBook() {
+        return ApiResponse.<List<BookResponse>>builder()
+                .code(0).success(true).message("Lấy 6 sách mới nhất thành công")
+                .Result(bookService.getNewest())
+                .build();
+    }
 }

@@ -32,7 +32,8 @@ public class AuditLogAspect {
         // Chỉ ghi log thao tác ghi dữ liệu
         boolean isWrite = method.equals("POST")
                 || method.equals("PUT")
-                || method.equals("DELETE");
+                || method.equals("DELETE")
+                || method.equals("GET");
 
         if (!isWrite) {
             return joinPoint.proceed();

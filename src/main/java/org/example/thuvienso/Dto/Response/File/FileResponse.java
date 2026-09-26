@@ -35,4 +35,8 @@ public class FileResponse {
 
     String thumbnail;
 
+    LocalDateTime deletedAt;   // thời điểm xóa mềm
+
+    LocalDateTime expireAt;
+
 }

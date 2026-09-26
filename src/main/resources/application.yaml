@@ -3,9 +3,9 @@ spring:
     name: ThuVienSo
   servlet:
     multipart:
-      max-file-size: 1GB
-      max-request-size: 2GB
-      file-size-threshold: 2MB
+      max-file-size: 10GB
+      max-request-size: 20GB
+      file-size-threshold: 20MB
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

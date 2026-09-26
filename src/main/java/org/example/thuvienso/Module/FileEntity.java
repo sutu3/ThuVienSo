@@ -35,6 +35,9 @@ public class FileEntity extends BaseEntity{
     @Column(name = "thumbnail",columnDefinition = "VARCHAR(256) COMMENT 'Tập tin thu nhỏ'")
     String thumbnail;
 
+    @Column(name = "download",columnDefinition = "INTEGER COMMENT 'Số lượng tải file'")
+    Integer download;
+
     @Column(name = "sizeFile",columnDefinition = "LONG COMMENT 'Kích thước tập tin'")
     Long size;
 

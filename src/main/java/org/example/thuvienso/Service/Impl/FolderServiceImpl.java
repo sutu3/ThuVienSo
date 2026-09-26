@@ -38,6 +38,7 @@ public class FolderServiceImpl implements FolderService {
     FolderMapper folderMapper;
     FolderServiceHelper folderServiceHelper;
     GetAccountByToken getAccountByToken;
+    private static final int TRASH_RETENTION_DAYS = 30;
 
     @Override
     public FolderResponse create(FolderRequest request) {
@@ -90,15 +91,28 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public void deletedById(String id) {
         FolderEntity folder = getById(id);
+        if(folder.getVisibility().equals(FolderVisibility.PUBLIC)||folder.getParentFolder()==null){
+            throw new AppException(ErrorCode.FOLDER_CAN_NOT_DELETED);
+        }
         folder.setIsDeleted(true);
         folder.setDeletedAt(LocalDateTime.now());
         folderRepo.save(folder);
     }
 
     @Override
+    @Transactional   // cần để lazy-load childFolder / documentEntity / fileEntity
     public List<FolderResponseNoList> getAllFolderDeleted() {
         return folderRepo.findALlByIsDeleted(true)
-                .stream().map(folderMapper::toResponseNoList)
+                .stream()
+                .map(folder -> {
+                    FolderResponseNoList res = folderMapper.toResponseNoList(folder);
+                    res.setDeletedAt(folder.getDeletedAt());
+                    if (folder.getDeletedAt() != null) {
+                        res.setExpireAt(folder.getDeletedAt().plusDays(TRASH_RETENTION_DAYS));
+                    }
+                    res.setSize(folderServiceHelper.calculateFolderSize(folder));
+                    return res;
+                })
                 .collect(Collectors.toList());
     }
 

@@ -20,6 +20,10 @@ public interface BookService {
 
     BookResponse getByBookCode(String bookCode); // phục vụ tra cứu QR
 
+    List<BookResponse> getByCategory(String idCategory);
+
+    List<BookResponse> getNewest();
+
     List<BookResponse> getAll();
 
     void deletedById(String id);

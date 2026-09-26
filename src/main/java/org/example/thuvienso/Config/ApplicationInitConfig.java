@@ -45,7 +45,6 @@ import static io.minio.StatObjectArgs.*;
 @Slf4j
 public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
-    MinioClient minioClient;
     LocalStorage localStorage;
 
 

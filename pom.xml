@@ -44,6 +44,17 @@
             <artifactId>pdfbox</artifactId>
             <version>3.0.6</version>
         </dependency>
+        <!-- Apache POI: đọc/parse & render Office -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+            <version>5.2.5</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -88,6 +99,16 @@
             <groupId>org.jodconverter</groupId>
             <artifactId>jodconverter-local</artifactId>
             <version>4.4.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>1.5.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg-platform</artifactId>
+            <version>6.1.1-1.5.10</version>
         </dependency>
         <!-- SpringDoc OpenAPI -->
         <dependency>

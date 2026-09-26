@@ -21,4 +21,12 @@ public interface StatisticService {
     List<CountByKeyResponse> monthlyTrend(int months);
 
     List<CountByKeyResponse> weeklyActivity();
+
+    long totalDownloadLogs();
+
+    List<CountByKeyResponse> downloadsByDay();       // 7 ngày gần nhất
+
+    List<CountByKeyResponse> topDownloadedDocuments(int limit);
+
+    List<CountByKeyResponse> topDownloadUsers(int limit);
 }

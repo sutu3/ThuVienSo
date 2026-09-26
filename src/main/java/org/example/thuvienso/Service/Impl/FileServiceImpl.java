@@ -27,15 +27,9 @@ import org.example.thuvienso.Module.FileEntity;
 import org.example.thuvienso.Repo.CategoryRepo;
 import org.example.thuvienso.Repo.DocumentRepo;
 import org.example.thuvienso.Repo.FileRepo;
-import org.example.thuvienso.Service.CategoryService;
-import org.example.thuvienso.Service.DocumentService;
-import org.example.thuvienso.Service.FileService;
-import org.example.thuvienso.Service.MinioService;
+import org.example.thuvienso.Service.*;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,11 +57,16 @@ public class FileServiceImpl implements FileService {
     GetUrl getUrl;
     CategoryService categoryService;
     FileResponseHelper fileServiceHelper;
+    DownloadLogService downloadLogService;
+    private static final int TRASH_RETENTION_DAYS = 30;
+
 
     @Override
     @Transactional
     public FileResponse uploadFile(MultipartFile file, String idDocument) throws Exception {
-        if (file.getSize() >  1024L * 1024 * 1024) throw new AppException(ErrorCode.FILE_IS_TO_BIG);
+        if (file.getSize() > 10L * 1024 * 1024 * 1024) {
+            throw new AppException(ErrorCode.FILE_IS_TO_BIG);
+        }
         if(fileRepo.existsByDocumentEntity_IdDocumentAndFileNameAndTypeFileAndIsDeleted(idDocument,file.getOriginalFilename(),TypeFile.fromMimeType(file.getContentType()),false)) throw new AppException(ErrorCode.FILE_IS_EXIST);
         FileUploadResponse uploaded = minioService.upload(file);
         DocumentEntity document = documentService.getById(idDocument);
@@ -102,11 +101,22 @@ public class FileServiceImpl implements FileService {
     public ResponseEntity<InputStreamResource> dowloadFile(String id) throws IOException {
         FileEntity fileEntity = fileRepo.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
+        DocumentEntity document = fileEntity.getDocumentEntity();
+        if (document != null) {
+            document.setDownloadCount(
+                    (document.getDownloadCount() == null ? 0L : document.getDownloadCount()) + 1);
+            documentRepo.save(document);
+        }
+        // Lưu 1 dòng log chi tiết (mức đầy đủ)
+        downloadLogService.record(fileEntity, document);
         InputStream stream = localStorage.load(fileEntity.getPartFile());
+        ContentDisposition cd = ContentDisposition.attachment()
+                .filename(fileEntity.getFileName(), java.nio.charset.StandardCharsets.UTF_8)
+                .build();
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(fileEntity.getTypeFile().getMimeType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + fileEntity.getFileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
                 .body(new InputStreamResource(stream));
     }
     @Override
@@ -207,7 +217,14 @@ public class FileServiceImpl implements FileService {
     @Override
     public List<FileResponse> getFilesDeleted() {
         return fileRepo.findAllByIsDeleted(true)
-                .stream().map(fileMapper::toResponse)
+                .stream()
+                .map(file -> {
+                    FileResponse res = fileMapper.toResponse(file);   // đã có size, deletedAt
+                    if (file.getDeletedAt() != null) {
+                        res.setExpireAt(file.getDeletedAt().plusDays(TRASH_RETENTION_DAYS));
+                    }
+                    return res;
+                })
                 .collect(Collectors.toList());
     }
 

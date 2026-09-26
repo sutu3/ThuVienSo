@@ -21,6 +21,7 @@ public class FolderServiceHelper {
     private final DocumentRepo documentRepo;
     private final FileRepo fileRepo;
     private final FolderRepo folderRepo;
+    private static final int TRASH_RETENTION_DAYS = 30;
 
     // target có trùng source hoặc nằm trong cây con của source không?
     public boolean isSameOrDescendant(FolderEntity source, FolderEntity target) {
@@ -129,6 +130,26 @@ public class FolderServiceHelper {
                 });
         return newDoc;
     }
+    public long calculateFolderSize(FolderEntity folder) {
+        long total = 0L;
+
+        if (folder.getDocumentEntity() != null) {
+            for (DocumentEntity doc : folder.getDocumentEntity()) {
+                if (doc.getFileEntity() == null) continue;
+                for (FileEntity file : doc.getFileEntity()) {
+                    if (file.getSize() != null) total += file.getSize();
+                }
+            }
+        }
+
+        if (folder.getChildFolder() != null) {
+            for (FolderEntity child : folder.getChildFolder()) {
+                total += calculateFolderSize(child);
+            }
+        }
+        return total;
+    }
+
 
 
 

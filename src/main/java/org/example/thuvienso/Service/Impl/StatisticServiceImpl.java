@@ -9,12 +9,7 @@ import org.example.thuvienso.Enum.BorrowStatus;
 import org.example.thuvienso.Enum.StatusDocument;
 import org.example.thuvienso.Enum.TypeDocument;
 import org.example.thuvienso.Module.DocumentEntity;
-import org.example.thuvienso.Repo.BookRepo;
-import org.example.thuvienso.Repo.AccountRepo;
-import org.example.thuvienso.Repo.AuditLogRepo;
-import org.example.thuvienso.Repo.BorrowRecordRepo;
-import org.example.thuvienso.Repo.DocumentRepo;
-import org.example.thuvienso.Repo.FileRepo;
+import org.example.thuvienso.Repo.*;
 import org.example.thuvienso.Service.StatisticService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -36,6 +31,7 @@ public class StatisticServiceImpl implements StatisticService {
     BorrowRecordRepo borrowRepo;
     AccountRepo accountRepo;
     AuditLogRepo auditLogRepo;
+    DownloadLogRepo downloadLogRepo;
 
     @Override
     public StatisticResponse getOverview() {
@@ -73,7 +69,8 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public List<CountByKeyResponse> topViewedDocuments(int limit) {
         return documentRepo
-                .findByIsDeletedFalseOrderByViewCountDesc(PageRequest.of(0, boundedLimit(limit)))
+                .findByIsDeletedFalseAndTypeDocumentNotOrderByViewCountDesc(
+                        TypeDocument.DOCUMENT, PageRequest.of(0, boundedLimit(limit)))
                 .stream()
                 .map((DocumentEntity d) -> CountByKeyResponse.builder()
                         .key(d.getTitle())
@@ -156,6 +153,55 @@ public class StatisticServiceImpl implements StatisticService {
                     .build());
         }
         return result;
+    }
+
+    // StatisticServiceImpl.java (thêm field + method)
+    // thêm vào danh sách field inject
+
+    @Override
+    public long totalDownloadLogs() {
+        return downloadLogRepo.count();
+    }
+
+    @Override
+    public List<CountByKeyResponse> downloadsByDay() {
+        LocalDate firstDay = LocalDate.now().minusDays(6);
+        Map<String, Long> counts = new HashMap<>();
+        downloadLogRepo.countByDay(firstDay.atStartOfDay())
+                .forEach(row -> counts.put(row[0].toString(), ((Number) row[1]).longValue()));
+
+        List<CountByKeyResponse> result = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM");
+        for (int i = 0; i < 7; i++) {
+            LocalDate day = firstDay.plusDays(i);
+            result.add(CountByKeyResponse.builder()
+                    .key(day.format(fmt))
+                    .value(counts.getOrDefault(day.toString(), 0L))
+                    .build());
+        }
+        return result;
+    }
+
+    @Override
+    public List<CountByKeyResponse> topDownloadedDocuments(int limit) {
+        return downloadLogRepo.countGroupByDocument().stream()
+                .limit(boundedLimit(limit))
+                .map(row -> CountByKeyResponse.builder()
+                        .key((String) row[0])
+                        .value(((Number) row[1]).longValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CountByKeyResponse> topDownloadUsers(int limit) {
+        return downloadLogRepo.countGroupByUser().stream()
+                .limit(boundedLimit(limit))
+                .map(row -> CountByKeyResponse.builder()
+                        .key((String) row[0])
+                        .value(((Number) row[1]).longValue())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private int boundedLimit(int limit) {

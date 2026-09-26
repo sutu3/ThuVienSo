@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.example.thuvienso.Module.DocumentEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @SuperBuilder
@@ -21,5 +22,11 @@ public class FolderResponseNoList {
     String folderName;
 
     String description;
+
+    LocalDateTime deletedAt;
+
+    LocalDateTime expireAt;
+
+    Long size;
 
 }

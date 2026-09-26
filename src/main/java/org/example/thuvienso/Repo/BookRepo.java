@@ -6,12 +6,17 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface BookRepo extends JpaRepository<BookEntity, String>, JpaSpecificationExecutor<BookEntity> {
 
     Optional<BookEntity> findByBookCode(String bookCode);
+
+    List<BookEntity> findByCategoryEntity_IdCategoryAndIsDeletedFalse(String idCategory);
+
+    List<BookEntity> findTop6ByIsDeletedFalseOrderByCreatedAtDesc();
 
     boolean existsByBookCode(String bookCode);
 

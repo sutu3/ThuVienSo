@@ -38,6 +38,7 @@ public class AuthenticationFilter {
             "/files/thumbnail",
             "/categories/getAll",
             "/books/getAll",
+            "/books/newest",
             "/collections/getAll",
             "/documents/getAll",
             "/files/raw/**",

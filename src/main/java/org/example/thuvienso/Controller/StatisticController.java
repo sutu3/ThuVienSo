@@ -76,6 +76,21 @@ public class StatisticController {
     public ApiResponse<List<CountByKeyResponse>> weeklyActivity() {
         return response("Thống kê hoạt động 7 ngày gần nhất thành công", statisticService.weeklyActivity());
     }
+    // StatisticController.java (thêm endpoint)
+    @GetMapping("/downloadsByDay")
+    public ApiResponse<List<CountByKeyResponse>> downloadsByDay() {
+        return response("Thống kê lượt tải 7 ngày gần nhất thành công", statisticService.downloadsByDay());
+    }
+
+    @GetMapping("/topDownloaded")
+    public ApiResponse<List<CountByKeyResponse>> topDownloaded(@RequestParam(defaultValue = "10") int limit) {
+        return response("Thống kê tài liệu tải nhiều nhất thành công", statisticService.topDownloadedDocuments(limit));
+    }
+
+    @GetMapping("/topDownloadUsers")
+    public ApiResponse<List<CountByKeyResponse>> topDownloadUsers(@RequestParam(defaultValue = "10") int limit) {
+        return response("Thống kê người tải nhiều nhất thành công", statisticService.topDownloadUsers(limit));
+    }
 
     private ApiResponse<List<CountByKeyResponse>> response(String message, List<CountByKeyResponse> result) {
         return ApiResponse.<List<CountByKeyResponse>>builder().code(0).success(true).message(message).Result(result).build();

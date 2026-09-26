@@ -32,6 +32,10 @@ public interface DocumentRepo extends JpaRepository<DocumentEntity, String>, Jpa
     // Xem nhiều nhất
     Page<DocumentEntity> findByIsDeletedFalseOrderByViewCountDesc(Pageable pageable);
 
+    // Xem nhiều nhất, loại trừ một typeDocument (vd DOCUMENT)
+    Page<DocumentEntity> findByIsDeletedFalseAndTypeDocumentNotOrderByViewCountDesc(
+            TypeDocument typeDocument, Pageable pageable);
+
     // Liên quan theo category, loại trừ chính nó
     Page<DocumentEntity> findByCategoryEntity_IdCategoryAndIdDocumentNotAndIsDeletedFalse(
             String idCategory, String idDocument, Pageable pageable);

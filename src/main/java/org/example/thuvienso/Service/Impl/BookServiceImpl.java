@@ -102,6 +102,42 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public List<BookResponse> getByCategory(String idCategory) {
+        return bookRepo.findByCategoryEntity_IdCategoryAndIsDeletedFalse(idCategory).stream()
+                .map(bookMapper::toResponse)
+                .peek(this::withMediaUrl)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookResponse> getNewest() {
+        return bookRepo.findTop6ByIsDeletedFalseOrderByCreatedAtDesc().stream()
+                .map(bookMapper::toResponse)
+                .peek(res -> {
+                    try {
+                        if (res.getThumbnail() != null && !res.getThumbnail().isBlank())
+                            res.setThumbnail(getUrl.getFileUrl(res.getThumbnail()));
+                        String qrObject = qrCodeGenerator.generate(res.getIdBook());
+                        res.setQrCode(getUrl.getFileUrl(qrObject));
+                    } catch (Exception e) {
+                        log.warn("Cannot build thumbnail url", e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    private void withMediaUrl(BookResponse res) {
+        try {
+            if (res.getThumbnail() != null && !res.getThumbnail().isBlank())
+                res.setThumbnail(getUrl.getFileUrl(res.getThumbnail()));
+            String qrObject = qrCodeGenerator.generate(res.getIdBook());
+            res.setQrCode(getUrl.getFileUrl(qrObject));
+        } catch (Exception e) {
+            log.warn("Cannot build thumbnail url", e);
+        }
+    }
+
+    @Override
     public List<BookResponse> getAll() {
         return bookRepo.findAll().stream()
                 .filter(book -> !book.getIsDeleted())
